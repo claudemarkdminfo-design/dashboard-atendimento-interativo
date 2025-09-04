@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>IXC — Dashboard de Quedas (PDF) • v4</title>
+  <title>IXC — Dashboard de Quedas (PDF) • v5</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
     /* Sidebar */
     .sidebar{ background:var(--sidebar); border-right:1px solid var(--border); padding:20px; position:sticky; top:0; height:100vh; }
     .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; margin-bottom:16px; }
-    .brand .badge{ background:var(--brand); color:#fff; width:28px; height:28px; display:grid; place-items:center; border-radius:8px; font-weight:800 }
+    .brand .badge{ background:var(--brand); color:#fff; padding:4px 8px; display:grid; place-items:center; border-radius:8px; font-weight:800; letter-spacing:.5px }
     .menu{ display:flex; flex-direction:column; gap:6px; margin-top:10px }
     .menu a{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:#111827; text-decoration:none; border-radius:10px }
     .menu a.active, .menu a:hover{ background:#eef2ff; color:#1e40af }
@@ -31,13 +31,13 @@
     .menu .sep{ margin:12px 0 6px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em }
     /* Content */
     .content{ padding:24px 28px }
-    .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:12px; flex-wrap:wrap }
     .title h1{ margin:0; font-size:22px }
     .title p{ margin:4px 0 0; color:var(--muted); font-size:14px }
-    .actions{ display:flex; gap:10px; align-items:center }
+    .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
     .btn{ display:inline-flex; align-items:center; gap:8px; background:#ffffff; border:1px solid var(--border); padding:9px 12px; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:var(--shadow) }
     .btn.primary{ background: var(--brand); color:#fff; border-color:var(--brand) }
-    .btn.ghost{ background:#fff }
+    .btn.danger{ color: var(--bad); border-color:#fecaca }
     .btn input[type=file]{ display:none }
     /* Filters bar */
     .filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); margin-bottom:14px }
@@ -64,17 +64,20 @@
     .log{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#fff; border:1px solid var(--border); border-radius:12px; padding:10px; max-height:180px; overflow:auto }
     .muted{ color:var(--muted) }
     /* Tabs for Reports */
-    .tabs{ display:flex; gap:6px; margin-bottom:10px }
+    .tabs{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap }
     .tab{ padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer; font-weight:600 }
     .tab.active{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af }
     .report-grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
     .hint{ font-size:12px; color:var(--muted) }
+    /* IPs */
+    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
+    .input{ border:1px solid var(--border); padding:8px 10px; border-radius:10px; background:#fff; min-width:240px }
   </style>
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <div class="brand"><div class="badge">IX</div> <span>IXC Dashboard</span></div>
+      <div class="brand"><div class="badge">IXC</div> <span>IXC Dashboard</span></div>
       <nav class="menu" id="nav">
         <a class="active" data-target="dashboard">
           <svg viewBox="0 0 24 24" fill="none"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -83,6 +86,10 @@
         <a data-target="tabela">
           <svg viewBox="0 0 24 24" fill="none"><path d="M3 5h18M3 12h18M3 19h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           Tabela
+        </a>
+        <a data-target="ips">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          IPs
         </a>
         <a data-target="relatorios">
           <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14v16l-7-3-7 3V4Z" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -103,7 +110,7 @@
           <p id="pageSubtitle">Visualize quedas por motivo, série diária e resumo geral. Carregue os PDFs do “Relatório de Conexões Detalhado”.</p>
         </div>
         <div class="actions">
-          <label class="btn ghost">
+          <label class="btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Selecionar PDFs
             <input type="file" id="fileInput" accept=".pdf,application/pdf" multiple>
@@ -115,6 +122,10 @@
           <button class="btn" id="btnCSV">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M8 7h8M8 11h8M8 15h8M4 7h.01M4 11h.01M4 15h.01M20 7h.01M20 11h.01M20 15h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
             Exportar CSV
+          </button>
+          <button class="btn danger" id="btnClearAll">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Limpar dados
           </button>
         </div>
       </div>
@@ -161,7 +172,23 @@
           <div class="muted" style="margin-bottom:8px;">Prévia das últimas 300 linhas (após filtros)</div>
           <div style="max-height:500px; overflow:auto;">
             <table id="tbl">
-              <thead><tr><th>Login</th><th>Conexão Final</th><th>Motivo</th><th>Texto</th></tr></thead>
+              <thead><tr><th>Login</th><th>Conexão Final</th><th>Motivo</th><th>IP</th><th>Texto</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-ips" style="display:none">
+        <div class="card">
+          <div class="toolbar">
+            <input id="ipSearch" class="input" placeholder="Buscar IP (ex.: 177.23.10.5)">
+            <button class="btn" id="btnIpClear">Limpar busca</button>
+          </div>
+          <div class="muted" style="margin-bottom:8px;">Lista de IPs dentro do período selecionado (De/Até). Mostra ocorrências, primeiro/último visto.</div>
+          <div style="max-height:520px; overflow:auto;">
+            <table id="tblIps">
+              <thead><tr><th>IP</th><th>Ocorrências</th><th>Primeiro</th><th>Último</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -175,9 +202,7 @@
             <button class="tab" data-rpt="r15comp">Comparativo (15d atuais vs 15d anteriores)</button>
             <button class="tab" data-rpt="pic">Picos & Anomalias</button>
           </div>
-          <div id="reportBody">
-            <!-- Filled by JS -->
-          </div>
+          <div id="reportBody"></div>
         </div>
       </section>
 
@@ -197,6 +222,7 @@
   const pageMap = {
     dashboard: {section: document.getElementById("page-dashboard"), title:"Dashboard", subtitle:"Visualize quedas por motivo, série diária e resumo geral."},
     tabela: {section: document.getElementById("page-tabela"), title:"Tabela", subtitle:"Prévia de registros após filtros."},
+    ips: {section: document.getElementById("page-ips"), title:"IPs", subtitle:"Filtre por data e busque IPs específicos."},
     relatorios: {section: document.getElementById("page-relatorios"), title:"Relatórios Inteligentes", subtitle:"Insights automáticos com base nos últimos 15 dias."},
     log: {section: document.getElementById("page-log"), title:"Log", subtitle:"Mensagens do processamento de PDFs."}
   };
@@ -211,6 +237,7 @@
       for(const [k,v] of Object.entries(pageMap)){ v.section.style.display = (k===target) ? "" : "none"; }
       pageTitle.textContent = pageMap[target].title;
       pageSubtitle.textContent = pageMap[target].subtitle;
+      if(target==="ips"){ renderIPs(); }
     });
   });
 
@@ -229,6 +256,7 @@
   const elInput = document.getElementById("fileInput");
   const elProcess = document.getElementById("btnProcess");
   const elCSV = document.getElementById("btnCSV");
+  const elClearAll = document.getElementById("btnClearAll");
   const elReasonsBox = document.getElementById("reasonsBox");
   const chkLR = document.getElementById("chkLR");
   const chkUR = document.getElementById("chkUR");
@@ -246,20 +274,19 @@
   const kpiDistinctDays = document.getElementById("kpiDistinctDays");
   const tblBody = document.querySelector("#tbl tbody");
 
+  const ipSearch = document.getElementById("ipSearch");
+  const btnIpClear = document.getElementById("btnIpClear");
+  const tblIpsBody = document.querySelector("#tblIps tbody");
+
   chkLR.addEventListener("change", ()=>{ if(chkLR.checked) state.reasonsSelected.add("Lost-Carrier"); else state.reasonsSelected.delete("Lost-Carrier"); updateView(); });
   chkUR.addEventListener("change", ()=>{ if(chkUR.checked) state.reasonsSelected.add("User-Request"); else state.reasonsSelected.delete("User-Request"); updateView(); });
-  dateStart.addEventListener("change", updateView);
-  dateEnd.addEventListener("change", updateView);
-  btnClearDates.addEventListener("click", () => { dateStart.value=""; dateEnd.value=""; updateView(); });
+  dateStart.addEventListener("change", ()=>{ updateView(); renderIPs(); });
+  dateEnd.addEventListener("change", ()=>{ updateView(); renderIPs(); });
+  btnClearDates.addEventListener("click", () => { dateStart.value=""; dateEnd.value=""; updateView(); renderIPs(); });
+  ipSearch.addEventListener("input", renderIPs);
+  btnIpClear.addEventListener("click", ()=>{ ipSearch.value=""; renderIPs(); });
 
-  function quickRange(days){
-    if(!state.maxDate){ return; }
-    const end = state.maxDate;
-    const start = new Date(end); start.setDate(start.getDate() - (days-1));
-    dateStart.value = toInput(start);
-    dateEnd.value = toInput(end);
-    updateView();
-  }
+  elClearAll.addEventListener("click", clearAll);
 
   function buildReasons(){
     elReasonsBox.innerHTML = "";
@@ -321,22 +348,28 @@
       const dates = Array.from(windowText.matchAll(DATE_RE)).map(m=>m[0]);
       const dateFinal = dates.length ? parseDateBR(dates[dates.length-1]) : null;
 
+      // pega primeiro IPv4 encontrado na janela
+      let ip = null;
+      const ipM = windowText.match(IPV4_RE);
+      if(ipM) ip = ipM[0];
+
+      // heurística de login (palavra antes do 1º IP na janela invertida)
       let login = null;
       const win = searchWindow.slice().reverse().join(" ");
-      const ipMatch = win.match(IPV4_RE);
-      if(ipMatch){
-        const before = win.slice(0, ipMatch.index).trim();
+      const ipMatch2 = win.match(IPV4_RE);
+      if(ipMatch2){
+        const before = win.slice(0, ipMatch2.index).trim();
         const w = before.split(/\s+/);
         if(w.length){
           const candidate = w[w.length-1];
           if(candidate && !/^\d/.test(candidate) && candidate.length>=3){ login = candidate; }
         }
       }
-      out.push({reason, dateFinal, login, line});
+      out.push({reason, dateFinal, login, ip, line});
     }
     const seen = new Set(), uniq = [];
     for(const r of out){
-      const key = `${r.reason}|${r.dateFinal ? r.dateFinal.getTime():"n"}|${r.line.slice(0,80)}`;
+      const key = `${r.reason}|${r.dateFinal ? r.dateFinal.getTime():"n"}|${r.ip||"n"}|${r.line.slice(0,80)}`;
       if(!seen.has(key)){ seen.add(key); uniq.push(r); }
     }
     return uniq;
@@ -406,12 +439,50 @@
       tr.innerHTML = `<td>${r.login||"<span class='muted'>—</span>"}</td>
                       <td>${r.dateFinal?formatDateBR(r.dateFinal):"<span class='muted'>—</span>"}</td>
                       <td><span class="pill ${pill}">${r.reason}</span></td>
+                      <td>${r.ip||"<span class='muted'>—</span>"}</td>
                       <td class="muted">${r.line.replaceAll("<","&lt;")}</td>`;
       tbody.appendChild(tr);
     }
 
-    // refresh intelligent reports if visible
+    // refresh reports/ip list if visible
     if(pageMap.relatorios.section.style.display!=="none"){ renderReports(); }
+    if(pageMap.ips.section.style.display!=="none"){ renderIPs(); }
+  }
+
+  // --------- IPs page ---------
+  function renderIPs(){
+    const filtered = applyDateFilter(state.rows).filter(r=>r.ip);
+    // aggregate
+    const map = {};
+    for(const r of filtered){
+      const ip = r.ip;
+      const t = r.dateFinal.getTime();
+      if(!map[ip]) map[ip] = { ip, count:0, first:t, last:t };
+      const m = map[ip];
+      m.count += 1; if(t<m.first) m.first=t; if(t>m.last) m.last=t;
+    }
+    let list = Object.values(map);
+    const q = ipSearch.value.trim();
+    if(q) list = list.filter(x => x.ip.includes(q));
+    list.sort((a,b)=> b.count - a.count || a.ip.localeCompare(b.ip));
+
+    const tbody = tblIpsBody;
+    tbody.innerHTML = "";
+    const fmt = (t)=>{
+      const d = new Date(t);
+      const pad = n=> String(n).padStart(2,"0");
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    };
+    for(const row of list){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${row.ip}</td><td>${row.count}</td><td>${fmt(row.first)}</td><td>${fmt(row.last)}</td>`;
+      tbody.appendChild(tr);
+    }
+    if(!list.length){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="4" class="muted">Nenhum IP no período atual.</td>`;
+      tbody.appendChild(tr);
+    }
   }
 
   // --------- Intelligent Reports ---------
@@ -426,13 +497,11 @@
       reportBody.innerHTML = "<div class='muted'>Nenhum dado carregado ainda.</div>";
       return;
     }
-    // compute base periods
     const rows = state.rows.filter(r=>r.dateFinal).sort((a,b)=>a.dateFinal-b.dateFinal);
     const maxD = rows[rows.length-1].dateFinal;
     const start15 = new Date(maxD); start15.setDate(start15.getDate()-14);
     const prevStart = new Date(start15); prevStart.setDate(prevStart.getDate()-15);
     const prevEnd = new Date(start15); prevEnd.setDate(prevEnd.getDate()-1);
-
     const cur = rows.filter(r => r.dateFinal>=start15 && r.dateFinal<=maxD);
     const prev = rows.filter(r => r.dateFinal>=prevStart && r.dateFinal<=prevEnd);
 
@@ -485,12 +554,9 @@
 
         <div class="card col-6"><canvas id="r15c_reason" height="120"></canvas></div>
         <div class="card col-6"><canvas id="r15c_day" height="120"></canvas></div>
-        <div class="card col-12">
-          <div class="hint">Atual: ${start15.toISOString().slice(0,10)} a ${maxD.toISOString().slice(0,10)} • Anterior: ${prevStart.toISOString().slice(0,10)} a ${prevEnd.toISOString().slice(0,10)}</div>
-        </div>
+        <div class="card col-12"><div class="hint">Atual: ${start15.toISOString().slice(0,10)} a ${maxD.toISOString().slice(0,10)} • Anterior: ${prevStart.toISOString().slice(0,10)} a ${prevEnd.toISOString().slice(0,10)}</div></div>
       `;
       reportBody.appendChild(el);
-      // reason stacked
       const allReasons = Array.from(new Set([...Object.keys(curA.byReason), ...Object.keys(prevA.byReason)]));
       new Chart(document.getElementById("r15c_reason").getContext("2d"), {
         type:"bar",
@@ -499,7 +565,6 @@
           {label:"Anterior (15d)", data:allReasons.map(r=>prevA.byReason[r]||0)}
         ]}
       });
-      // day line compare
       const allDays = Array.from(new Set([...Object.keys(curA.byDay), ...Object.keys(prevA.byDay)])).sort();
       new Chart(document.getElementById("r15c_day").getContext("2d"), {
         type:"line",
@@ -511,7 +576,6 @@
       });
     }
     else if(active==="pic"){
-      // simple anomaly detection: z-score on daily counts of last 30 days
       const rows30 = rows.filter(r => r.dateFinal >= new Date(maxD.getTime()-29*86400000));
       const byDay = {};
       rows30.forEach(r => { const k=r.dateFinal.toISOString().slice(0,10); byDay[k]=(byDay[k]||0)+1; });
@@ -577,7 +641,6 @@
     const dates = extracted.map(r => r.dateFinal).filter(Boolean).sort((a,b)=>a-b);
     if(dates.length){
       state.minDate=dates[0]; state.maxDate=dates[dates.length-1];
-      // default to last 15 days on load
       const end = state.maxDate;
       const start = new Date(end); start.setDate(start.getDate()-14);
       dateStart.value = toInput(start); dateEnd.value = toInput(end);
@@ -590,11 +653,25 @@
 
   function exportCSV(){
     const filtered = applyDateFilter(state.rows);
-    const header = ["login","data_final","motivo","linha_raw"];
-    const rows = filtered.map(r => [r.login||"", r.dateFinal.toISOString(), r.reason, r.line.replaceAll('"','""')]);
+    const header = ["login","data_final","motivo","ip","linha_raw"];
+    const rows = filtered.map(r => [r.login||"", r.dateFinal.toISOString(), r.reason, r.ip||"", r.line.replaceAll('"','""')]);
     let csv = header.join(",") + "\\n" + rows.map(r => r.map(v => `"${v}"`).join(",")).join("\\n");
     const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "ixc_quedas_filtrado.csv"; a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  function clearAll(){
+    state.files=[]; state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null;
+    document.getElementById("fileInput").value="";
+    document.getElementById("logBox").textContent="Pronto.";
+    dateStart.value=""; dateEnd.value="";
+    kpiFiles.textContent="0"; kpiPages.textContent="0 páginas"; kpiRows.textContent="0";
+    kpiDrops.textContent="0"; kpiAvgDay.textContent="média/dia: 0"; kpiRange.textContent="—"; kpiDistinctDays.textContent="0 dias";
+    document.querySelector("#tbl tbody").innerHTML="";
+    document.querySelector("#tblIps tbody").innerHTML="";
+    if(chartByReason) chartByReason.destroy();
+    if(chartPie) chartPie.destroy();
+    if(chartDaily) chartDaily.destroy();
   }
 
   elProcess.addEventListener("click", processAll);
