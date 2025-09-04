@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IXC — Dashboard de Quedas (PDF) • v4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>try{pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}catch(e){}</script>
+  <style>
+    :root{
+      --bg:#f6f7fb; --sidebar:#ffffff; --surface:#ffffff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
+      --brand:#2563eb; --chip:#f3f4f6; --chip-border:#e5e7eb; --good:#16a34a; --warn:#f59e0b; --bad:#dc2626;
+      --shadow: 0 10px 20px rgba(0,0,0,.06); --radius: 14px;
+    }
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto; }
+    .layout{ display:grid; grid-template-columns: 264px 1fr; min-height:100vh; }
+    /* Sidebar */
+    .sidebar{ background:var(--sidebar); border-right:1px solid var(--border); padding:20px; position:sticky; top:0; height:100vh; }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; margin-bottom:16px; }
+    .brand .badge{ background:var(--brand); color:#fff; width:28px; height:28px; display:grid; place-items:center; border-radius:8px; font-weight:800 }
+    .menu{ display:flex; flex-direction:column; gap:6px; margin-top:10px }
+    .menu a{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:#111827; text-decoration:none; border-radius:10px }
+    .menu a.active, .menu a:hover{ background:#eef2ff; color:#1e40af }
+    .menu svg{ width:18px; height:18px }
+    .menu .sep{ margin:12px 0 6px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em }
+    /* Content */
+    .content{ padding:24px 28px }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px }
+    .title h1{ margin:0; font-size:22px }
+    .title p{ margin:4px 0 0; color:var(--muted); font-size:14px }
+    .actions{ display:flex; gap:10px; align-items:center }
+    .btn{ display:inline-flex; align-items:center; gap:8px; background:#ffffff; border:1px solid var(--border); padding:9px 12px; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:var(--shadow) }
+    .btn.primary{ background: var(--brand); color:#fff; border-color:var(--brand) }
+    .btn.ghost{ background:#fff }
+    .btn input[type=file]{ display:none }
+    /* Filters bar */
+    .filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); margin-bottom:14px }
+    .chip{ background:var(--chip); border:1px solid var(--chip-border); padding:6px 10px; border-radius:999px; display:inline-flex; gap:8px; align-items:center; font-size:13px }
+    .chip input{ accent-color:var(--brand) }
+    .date{ display:flex; gap:8px; align-items:center }
+    .date label{ font-size:12px; color:var(--muted) }
+    .date input{ border:1px solid var(--border); padding:7px 8px; border-radius:8px; background:#fff }
+    .quick{ display:flex; gap:8px; align-items:center }
+    .quick button{ border:1px dashed var(--border); background:#fff; padding:6px 10px; border-radius:999px; cursor:pointer; font-weight:600; font-size:12px }
+    /* Grid / cards */
+    .grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
+    .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow) }
+    .col-3{ grid-column: span 3 } .col-4{ grid-column: span 4 } .col-6{ grid-column: span 6 } .col-8{ grid-column: span 8 } .col-12{ grid-column: span 12 }
+    @media (max-width:1200px){ .col-8{ grid-column: span 12 } .col-6{ grid-column: span 12 } .col-4{ grid-column: span 6 } .col-3{ grid-column: span 6 } }
+    .kpi{ display:flex; justify-content:space-between; align-items:center }
+    .kpi .meta{ color:var(--muted); font-size:12px } .kpi .value{ font-size:26px; font-weight:700 }
+    table{ width:100%; border-collapse:collapse; font-size:13px }
+    th,td{ border-bottom:1px solid var(--border); padding:10px 8px; text-align:left }
+    th{ color:#374151; font-weight:600; background:#f9fafb; position:sticky; top:0 }
+    tbody tr:hover{ background:#fafafa }
+    .pill{ padding:3px 8px; border-radius:999px; border:1px solid var(--border); font-weight:600; font-size:12px }
+    .lost{ color:#b91c1c; border-color:#fecaca; background:#fff1f2 } .user{ color:#166534; border-color:#bbf7d0; background:#f0fdf4 }
+    .log{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#fff; border:1px solid var(--border); border-radius:12px; padding:10px; max-height:180px; overflow:auto }
+    .muted{ color:var(--muted) }
+    /* Tabs for Reports */
+    .tabs{ display:flex; gap:6px; margin-bottom:10px }
+    .tab{ padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer; font-weight:600 }
+    .tab.active{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af }
+    .report-grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
+    .hint{ font-size:12px; color:var(--muted) }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><div class="badge">IX</div> <span>IXC Dashboard</span></div>
+      <nav class="menu" id="nav">
+        <a class="active" data-target="dashboard">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor" stroke-width="1.5"/></svg>
+          Dashboard
+        </a>
+        <a data-target="tabela">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 5h18M3 12h18M3 19h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Tabela
+        </a>
+        <a data-target="relatorios">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14v16l-7-3-7 3V4Z" stroke="currentColor" stroke-width="1.5"/></svg>
+          Relatórios Inteligentes
+        </a>
+        <div class="sep">Sistema</div>
+        <a data-target="log">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v14H6l-2 2V4Z" stroke="currentColor" stroke-width="1.5"/></svg>
+          Log
+        </a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div class="title">
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle">Visualize quedas por motivo, série diária e resumo geral. Carregue os PDFs do “Relatório de Conexões Detalhado”.</p>
+        </div>
+        <div class="actions">
+          <label class="btn ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Selecionar PDFs
+            <input type="file" id="fileInput" accept=".pdf,application/pdf" multiple>
+          </label>
+          <button class="btn primary" id="btnProcess">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M20 8A8 8 0 0 0 4 8m16 8a8 8 0 0 1-16 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Processar
+          </button>
+          <button class="btn" id="btnCSV">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M8 7h8M8 11h8M8 15h8M4 7h.01M4 11h.01M4 15h.01M20 7h.01M20 11h.01M20 15h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Exportar CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Global Filters -->
+      <div class="filters">
+        <div class="date">
+          <label>De</label>
+          <input type="date" id="dateStart">
+          <label>até</label>
+          <input type="date" id="dateEnd">
+        </div>
+        <div class="quick">
+          <span class="hint">Atalhos:</span>
+          <button data-q="7">Últimos 7d</button>
+          <button data-q="15">Últimos 15d</button>
+          <button data-q="30">Últimos 30d</button>
+          <button id="btnClearDates">Limpar</button>
+        </div>
+        <div class="chip"><input type="checkbox" id="chkLR" checked><span>Contar Lost-Carrier como queda</span></div>
+        <div class="chip"><input type="checkbox" id="chkUR" checked><span>Contar User-Request como queda</span></div>
+      </div>
+
+      <!-- Pages -->
+      <section id="page-dashboard">
+        <div class="grid">
+          <div class="card col-3"><div class="kpi"><div><div class="meta">Arquivos</div><div class="value" id="kpiFiles">0</div></div><div class="meta" id="kpiPages">0 páginas</div></div></div>
+          <div class="card col-3"><div class="kpi"><div><div class="meta">Total de Registros</div><div class="value" id="kpiRows">0</div></div><div class="meta">todas as razões</div></div></div>
+          <div class="card col-3"><div class="kpi"><div><div class="meta">Quedas (seleção)</div><div class="value" id="kpiDrops">0</div></div><div class="meta" id="kpiAvgDay">média/dia: 0</div></div></div>
+          <div class="card col-3"><div class="kpi"><div><div class="meta">Período coberto</div><div class="value" id="kpiRange">—</div></div><div class="meta" id="kpiDistinctDays">0 dias</div></div></div>
+
+          <div class="card col-12">
+            <div class="chips" id="reasonsBox"></div>
+          </div>
+
+          <div class="card col-8"><canvas id="chartByReason" height="130"></canvas></div>
+          <div class="card col-4"><canvas id="chartPie" height="130"></canvas></div>
+          <div class="card col-12"><canvas id="chartDaily" height="170"></canvas></div>
+        </div>
+      </section>
+
+      <section id="page-tabela" style="display:none">
+        <div class="card">
+          <div class="muted" style="margin-bottom:8px;">Prévia das últimas 300 linhas (após filtros)</div>
+          <div style="max-height:500px; overflow:auto;">
+            <table id="tbl">
+              <thead><tr><th>Login</th><th>Conexão Final</th><th>Motivo</th><th>Texto</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-relatorios" style="display:none">
+        <div class="card">
+          <div class="tabs">
+            <button class="tab active" data-rpt="r15">Últimos 15 dias</button>
+            <button class="tab" data-rpt="r15comp">Comparativo (15d atuais vs 15d anteriores)</button>
+            <button class="tab" data-rpt="pic">Picos & Anomalias</button>
+          </div>
+          <div id="reportBody">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </section>
+
+      <section id="page-log" style="display:none">
+        <div class="card">
+          <div class="muted" style="margin-bottom:8px;">Log</div>
+          <div class="log" id="logBox">Pronto.</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+<script>
+(function(){
+  // --------- Helpers UI & Nav ---------
+  const pageMap = {
+    dashboard: {section: document.getElementById("page-dashboard"), title:"Dashboard", subtitle:"Visualize quedas por motivo, série diária e resumo geral."},
+    tabela: {section: document.getElementById("page-tabela"), title:"Tabela", subtitle:"Prévia de registros após filtros."},
+    relatorios: {section: document.getElementById("page-relatorios"), title:"Relatórios Inteligentes", subtitle:"Insights automáticos com base nos últimos 15 dias."},
+    log: {section: document.getElementById("page-log"), title:"Log", subtitle:"Mensagens do processamento de PDFs."}
+  };
+  const nav = document.getElementById("nav");
+  const pageTitle = document.getElementById("pageTitle");
+  const pageSubtitle = document.getElementById("pageSubtitle");
+  nav.querySelectorAll("a").forEach(a => {
+    a.addEventListener("click", () => {
+      nav.querySelectorAll("a").forEach(x => x.classList.remove("active"));
+      a.classList.add("active");
+      const target = a.getAttribute("data-target");
+      for(const [k,v] of Object.entries(pageMap)){ v.section.style.display = (k===target) ? "" : "none"; }
+      pageTitle.textContent = pageMap[target].title;
+      pageSubtitle.textContent = pageMap[target].subtitle;
+    });
+  });
+
+  function log(msg){ logBox.textContent += "\\n" + msg; logBox.scrollTop = logBox.scrollHeight; }
+  const logBox = document.getElementById("logBox");
+
+  // --------- Parsing setup ---------
+  const KNOWN_REASONS = [
+    "Lost-Carrier","User-Request","Admin-Reset","Session-Timeout","Admin-Reject",
+    "NAS-Error","LCP-Timeout","Port-Error","Chap-Error","Lost-Service","Radius-Timeout","Idle-Timeout"
+  ];
+  const DEFAULT_SELECTED = new Set(["Lost-Carrier","User-Request"]);
+
+  const state = { files:[], pages:0, rows:[], minDate:null, maxDate:null, reasonsSelected:new Set(DEFAULT_SELECTED) };
+
+  const elInput = document.getElementById("fileInput");
+  const elProcess = document.getElementById("btnProcess");
+  const elCSV = document.getElementById("btnCSV");
+  const elReasonsBox = document.getElementById("reasonsBox");
+  const chkLR = document.getElementById("chkLR");
+  const chkUR = document.getElementById("chkUR");
+  const dateStart = document.getElementById("dateStart");
+  const dateEnd = document.getElementById("dateEnd");
+  const btnClearDates = document.getElementById("btnClearDates");
+  document.querySelectorAll(".quick button[data-q]").forEach(b => b.addEventListener("click", () => quickRange(+b.getAttribute("data-q"))));
+
+  const kpiFiles = document.getElementById("kpiFiles");
+  const kpiPages = document.getElementById("kpiPages");
+  const kpiRows = document.getElementById("kpiRows");
+  const kpiDrops = document.getElementById("kpiDrops");
+  const kpiAvgDay = document.getElementById("kpiAvgDay");
+  const kpiRange = document.getElementById("kpiRange");
+  const kpiDistinctDays = document.getElementById("kpiDistinctDays");
+  const tblBody = document.querySelector("#tbl tbody");
+
+  chkLR.addEventListener("change", ()=>{ if(chkLR.checked) state.reasonsSelected.add("Lost-Carrier"); else state.reasonsSelected.delete("Lost-Carrier"); updateView(); });
+  chkUR.addEventListener("change", ()=>{ if(chkUR.checked) state.reasonsSelected.add("User-Request"); else state.reasonsSelected.delete("User-Request"); updateView(); });
+  dateStart.addEventListener("change", updateView);
+  dateEnd.addEventListener("change", updateView);
+  btnClearDates.addEventListener("click", () => { dateStart.value=""; dateEnd.value=""; updateView(); });
+
+  function quickRange(days){
+    if(!state.maxDate){ return; }
+    const end = state.maxDate;
+    const start = new Date(end); start.setDate(start.getDate() - (days-1));
+    dateStart.value = toInput(start);
+    dateEnd.value = toInput(end);
+    updateView();
+  }
+
+  function buildReasons(){
+    elReasonsBox.innerHTML = "";
+    KNOWN_REASONS.forEach(r => {
+      const id = "reason_" + r.replace(/[^a-z0-9]/gi,"_");
+      const label = document.createElement("label");
+      label.className = "chip";
+      label.innerHTML = `<input type="checkbox" id="${id}" ${state.reasonsSelected.has(r) ? "checked":""} /><span>${r}</span>`;
+      label.querySelector("input").addEventListener("change", e => {
+        if(e.target.checked) state.reasonsSelected.add(r); else state.reasonsSelected.delete(r);
+        updateView();
+      });
+      elReasonsBox.appendChild(label);
+    });
+  }
+  buildReasons();
+
+  elInput.addEventListener("change", () => { state.files = Array.from(elInput.files || []).filter(f => f.name?.toLowerCase().endsWith(".pdf")); processAll(); });
+
+  const DATE_RE = /\b(\d{2}\/\d{2}\/\d{4})\s+(\d{2}:\d{2}:\d{2})\b/g;
+  const IPV4_RE = /(?:\d{1,3}\.){3}\d{1,3}/;
+  const REASONS_RE = new RegExp("\\b(" + KNOWN_REASONS.map(r=>r.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")).join("|") + ")\\b");
+
+  function parseDateBR(str){
+    const m = /(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/.exec(str);
+    if(!m) return null;
+    return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]);
+  }
+  function formatDateBR(d){
+    const pad = n => String(n).padStart(2,"0");
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  function toInput(d){ return d.toISOString().slice(0,10); }
+
+  function itemsToTextLines(items){
+    const rows = {};
+    items.forEach(it => {
+      const y = Math.round(it.transform[5]);
+      rows[y] = rows[y] || [];
+      rows[y].push(it.str);
+    });
+    const ys = Object.keys(rows).map(Number).sort((a,b)=>b-a);
+    return ys.map(y => rows[y].join(" ")).join("\n");
+  }
+
+  function extractRows(allText){
+    const lines = allText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const out = [];
+    for(let i=0;i<lines.length;i++){
+      const line = lines[i];
+      const rMatch = line.match(REASONS_RE);
+      if(!rMatch) continue;
+      const reason = rMatch[1];
+
+      let searchWindow = [line];
+      for(let k=1;k<=4;k++){ if(lines[i-k]) searchWindow.push(lines[i-k]); }
+      const windowText = searchWindow.join(" | ");
+
+      const dates = Array.from(windowText.matchAll(DATE_RE)).map(m=>m[0]);
+      const dateFinal = dates.length ? parseDateBR(dates[dates.length-1]) : null;
+
+      let login = null;
+      const win = searchWindow.slice().reverse().join(" ");
+      const ipMatch = win.match(IPV4_RE);
+      if(ipMatch){
+        const before = win.slice(0, ipMatch.index).trim();
+        const w = before.split(/\s+/);
+        if(w.length){
+          const candidate = w[w.length-1];
+          if(candidate && !/^\d/.test(candidate) && candidate.length>=3){ login = candidate; }
+        }
+      }
+      out.push({reason, dateFinal, login, line});
+    }
+    const seen = new Set(), uniq = [];
+    for(const r of out){
+      const key = `${r.reason}|${r.dateFinal ? r.dateFinal.getTime():"n"}|${r.line.slice(0,80)}`;
+      if(!seen.has(key)){ seen.add(key); uniq.push(r); }
+    }
+    return uniq;
+  }
+
+  let chartByReason=null, chartPie=null, chartDaily=null;
+  function buildCharts(aggByReason, seriesDaily){
+    const ctx1 = document.getElementById("chartByReason").getContext("2d");
+    const ctx2 = document.getElementById("chartPie").getContext("2d");
+    const ctx3 = document.getElementById("chartDaily").getContext("2d");
+    if(chartByReason) chartByReason.destroy();
+    if(chartPie) chartPie.destroy();
+    if(chartDaily) chartDaily.destroy();
+    chartByReason = new Chart(ctx1,{ type:"bar", data:{ labels:Object.keys(aggByReason), datasets:[{label:"Ocorrências", data:Object.values(aggByReason)}] }, options:{ plugins:{legend:{display:false}}}});
+    chartPie = new Chart(ctx2,{ type:"doughnut", data:{ labels:Object.keys(aggByReason), datasets:[{ data:Object.values(aggByReason)}] } });
+    chartDaily = new Chart(ctx3,{ type:"line", data: seriesDaily, options:{ interaction:{ mode:"index", intersect:false }}});
+  }
+
+  function applyDateFilter(arr){
+    const ds = dateStart.value ? new Date(dateStart.value + "T00:00:00") : null;
+    const de = dateEnd.value ? new Date(dateEnd.value + "T23:59:59") : null;
+    return arr.filter(r => r.dateFinal && (!ds || r.dateFinal>=ds) && (!de || r.dateFinal<=de));
+  }
+
+  function updateView(){
+    const filtered = applyDateFilter(state.rows);
+    kpiRows.textContent = filtered.length.toLocaleString("pt-BR");
+
+    const aggByReason = {};
+    for(const r of filtered){ aggByReason[r.reason] = (aggByReason[r.reason]||0)+1; }
+
+    let drops = 0;
+    for(const [reason,count] of Object.entries(aggByReason)){
+      if(state.reasonsSelected.has(reason)) drops += count;
+    }
+    kpiDrops.textContent = drops.toLocaleString("pt-BR");
+
+    if(state.minDate && state.maxDate){
+      kpiRange.textContent = `${formatDateBR(state.minDate)} — ${formatDateBR(state.maxDate)}`;
+      const dayKeys = new Set(filtered.map(r => r.dateFinal.toISOString().slice(0,10)));
+      kpiDistinctDays.textContent = `${dayKeys.size} dia${dayKeys.size===1?"":"s"}`;
+      const avg = dayKeys.size ? drops / dayKeys.size : 0;
+      kpiAvgDay.textContent = `média/dia: ${avg.toFixed(2)}`;
+    } else {
+      kpiRange.textContent = "—"; kpiDistinctDays.textContent = "0 dias"; kpiAvgDay.textContent = "média/dia: 0";
+    }
+
+    const buckets = {};
+    for(const r of filtered){
+      const d = r.dateFinal.toISOString().slice(0,10);
+      buckets[d] = buckets[d] || {};
+      buckets[d][r.reason] = (buckets[d][r.reason]||0)+1;
+    }
+    const labels = Object.keys(buckets).sort();
+    const datasets = Array.from(state.reasonsSelected).map(reason => ({
+      label: reason,
+      data: labels.map(day => buckets[day][reason]||0)
+    }));
+    buildCharts(aggByReason, { labels, datasets });
+
+    const last300 = filtered.slice(-300);
+    const tbody = tblBody;
+    tbody.innerHTML = "";
+    for(const r of last300){
+      const pill = r.reason==="Lost-Carrier"?"lost":(r.reason==="User-Request"?"user":"");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${r.login||"<span class='muted'>—</span>"}</td>
+                      <td>${r.dateFinal?formatDateBR(r.dateFinal):"<span class='muted'>—</span>"}</td>
+                      <td><span class="pill ${pill}">${r.reason}</span></td>
+                      <td class="muted">${r.line.replaceAll("<","&lt;")}</td>`;
+      tbody.appendChild(tr);
+    }
+
+    // refresh intelligent reports if visible
+    if(pageMap.relatorios.section.style.display!=="none"){ renderReports(); }
+  }
+
+  // --------- Intelligent Reports ---------
+  const reportBody = document.getElementById("reportBody");
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach(t => t.addEventListener("click", () => { tabs.forEach(x=>x.classList.remove("active")); t.classList.add("active"); renderReports(); }));
+
+  function renderReports(){
+    const active = document.querySelector(".tab.active").getAttribute("data-rpt");
+    reportBody.innerHTML = "";
+    if(!state.rows.length){
+      reportBody.innerHTML = "<div class='muted'>Nenhum dado carregado ainda.</div>";
+      return;
+    }
+    // compute base periods
+    const rows = state.rows.filter(r=>r.dateFinal).sort((a,b)=>a.dateFinal-b.dateFinal);
+    const maxD = rows[rows.length-1].dateFinal;
+    const start15 = new Date(maxD); start15.setDate(start15.getDate()-14);
+    const prevStart = new Date(start15); prevStart.setDate(prevStart.getDate()-15);
+    const prevEnd = new Date(start15); prevEnd.setDate(prevEnd.getDate()-1);
+
+    const cur = rows.filter(r => r.dateFinal>=start15 && r.dateFinal<=maxD);
+    const prev = rows.filter(r => r.dateFinal>=prevStart && r.dateFinal<=prevEnd);
+
+    function agg(arr){
+      const byReason={}, byDay={}, byLogin={};
+      arr.forEach(r => {
+        byReason[r.reason]=(byReason[r.reason]||0)+1;
+        const k=r.dateFinal.toISOString().slice(0,10);
+        byDay[k]=(byDay[k]||0)+1;
+        if(r.login) byLogin[r.login]=(byLogin[r.login]||0)+1;
+      });
+      const total = arr.length;
+      const days = Object.keys(byDay).length || 1;
+      const avg = total/days;
+      const topReason = Object.entries(byReason).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
+      const topLogin = Object.entries(byLogin).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
+      const peakDay = Object.entries(byDay).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
+      return {total, avg, topReason, topLogin, peakDay, byReason, byDay};
+    }
+    const curA = agg(cur);
+    const prevA = agg(prev);
+
+    if(active==="r15"){
+      const el = document.createElement("div");
+      el.className="report-grid";
+      el.innerHTML = `
+        <div class="card col-3"><div class="kpi"><div><div class="meta">Total (15d)</div><div class="value">${curA.total}</div></div><div class="meta">média/dia: ${curA.avg.toFixed(2)}</div></div></div>
+        <div class="card col-3"><div class="kpi"><div><div class="meta">Top motivo</div><div class="value">${curA.topReason[0]}</div></div><div class="meta">${curA.topReason[1]} ocorr.</div></div></div>
+        <div class="card col-3"><div class="kpi"><div><div class="meta">Top login</div><div class="value">${curA.topLogin[0]}</div></div><div class="meta">${curA.topLogin[1]} ocorr.</div></div></div>
+        <div class="card col-3"><div class="kpi"><div><div class="meta">Dia de pico</div><div class="value">${curA.peakDay[0]}</div></div><div class="meta">${curA.peakDay[1]} ocorr.</div></div></div>
+
+        <div class="card col-6"><canvas id="r15_by_reason" height="120"></canvas></div>
+        <div class="card col-6"><canvas id="r15_by_day" height="120"></canvas></div>
+        <div class="card col-12"><div class="hint">Período considerado: ${start15.toISOString().slice(0,10)} a ${maxD.toISOString().slice(0,10)}</div></div>
+      `;
+      reportBody.appendChild(el);
+      new Chart(document.getElementById("r15_by_reason").getContext("2d"), {type:"bar", data:{labels:Object.keys(curA.byReason), datasets:[{label:"Ocorrências (15d)", data:Object.values(curA.byReason)}]}});
+      const labels = Object.keys(curA.byDay).sort();
+      new Chart(document.getElementById("r15_by_day").getContext("2d"), {type:"line", data:{labels, datasets:[{label:"Ocorrências por dia", data:labels.map(d=>curA.byDay[d]||0)}]}});
+    }
+    else if(active==="r15comp"){
+      const delta = curA.total - prevA.total;
+      const pct = prevA.total ? ((delta/prevA.total)*100).toFixed(1) : "—";
+      const el = document.createElement("div");
+      el.className="report-grid";
+      el.innerHTML = `
+        <div class="card col-4"><div class="kpi"><div><div class="meta">Total atual (15d)</div><div class="value">${curA.total}</div></div><div class="meta">média/dia: ${curA.avg.toFixed(2)}</div></div></div>
+        <div class="card col-4"><div class="kpi"><div><div class="meta">Total anterior (15d)</div><div class="value">${prevA.total}</div></div><div class="meta">média/dia: ${prevA.avg.toFixed(2)}</div></div></div>
+        <div class="card col-4"><div class="kpi"><div><div class="meta">Variação</div><div class="value">${delta>=0?"+":""}${delta}</div></div><div class="meta">${pct==="—"?"—":pct+"%"}</div></div></div>
+
+        <div class="card col-6"><canvas id="r15c_reason" height="120"></canvas></div>
+        <div class="card col-6"><canvas id="r15c_day" height="120"></canvas></div>
+        <div class="card col-12">
+          <div class="hint">Atual: ${start15.toISOString().slice(0,10)} a ${maxD.toISOString().slice(0,10)} • Anterior: ${prevStart.toISOString().slice(0,10)} a ${prevEnd.toISOString().slice(0,10)}</div>
+        </div>
+      `;
+      reportBody.appendChild(el);
+      // reason stacked
+      const allReasons = Array.from(new Set([...Object.keys(curA.byReason), ...Object.keys(prevA.byReason)]));
+      new Chart(document.getElementById("r15c_reason").getContext("2d"), {
+        type:"bar",
+        data:{ labels:allReasons, datasets:[
+          {label:"Atual (15d)", data:allReasons.map(r=>curA.byReason[r]||0)},
+          {label:"Anterior (15d)", data:allReasons.map(r=>prevA.byReason[r]||0)}
+        ]}
+      });
+      // day line compare
+      const allDays = Array.from(new Set([...Object.keys(curA.byDay), ...Object.keys(prevA.byDay)])).sort();
+      new Chart(document.getElementById("r15c_day").getContext("2d"), {
+        type:"line",
+        data:{ labels:allDays, datasets:[
+          {label:"Atual", data:allDays.map(d=>curA.byDay[d]||0)},
+          {label:"Anterior", data:allDays.map(d=>prevA.byDay[d]||0)}
+        ]},
+        options:{ interaction:{mode:"index", intersect:false}}
+      });
+    }
+    else if(active==="pic"){
+      // simple anomaly detection: z-score on daily counts of last 30 days
+      const rows30 = rows.filter(r => r.dateFinal >= new Date(maxD.getTime()-29*86400000));
+      const byDay = {};
+      rows30.forEach(r => { const k=r.dateFinal.toISOString().slice(0,10); byDay[k]=(byDay[k]||0)+1; });
+      const labels = Object.keys(byDay).sort();
+      const values = labels.map(d=>byDay[d]);
+      const mean = values.reduce((a,b)=>a+b,0)/values.length;
+      const sd = Math.sqrt(values.map(v => (v-mean)*(v-mean)).reduce((a,b)=>a+b,0)/values.length);
+      const anomalies = labels.map((d,i)=>({day:d, value:values[i], z: sd? (values[i]-mean)/sd : 0})).filter(x=>x.z>=2);
+      const el = document.createElement("div");
+      el.className="report-grid";
+      el.innerHTML = `
+        <div class="card col-12"><canvas id="pic_line" height="140"></canvas></div>
+        <div class="card col-12">
+          <b>Picos detectados (z ≥ 2)</b>
+          <div class="hint">Base de 30 dias. Média ${mean.toFixed(2)}, desvio ${sd.toFixed(2)}.</div>
+          <ul>${anomalies.map(a=>`<li><b>${a.day}</b>: ${a.value} ocorr.</li>`).join("") || "<li>Nenhum pico relevante.</li>"}</ul>
+        </div>
+      `;
+      reportBody.appendChild(el);
+      new Chart(document.getElementById("pic_line").getContext("2d"), {
+        type:"line",
+        data:{ labels, datasets:[{label:"Ocorrências por dia (30d)", data:values}] }
+      });
+    }
+  }
+
+  // --------- Core processing ---------
+  async function readPDF(file){
+    const buf = await file.arrayBuffer();
+    let pdf=null;
+    try {
+      pdf = await pdfjsLib.getDocument({data:buf}).promise;
+    } catch(e){
+      log("Worker falhou: " + e.message + " — usando disableWorker.");
+      pdf = await pdfjsLib.getDocument({data:buf, disableWorker:true}).promise;
+    }
+    return pdf;
+  }
+
+  async function processAll(){
+    if(!state.files.length){ alert("Selecione pelo menos um PDF."); return; }
+    state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null;
+    let totalPages=0; const texts=[];
+    for(const f of state.files){
+      try{
+        const pdf = await readPDF(f);
+        totalPages += pdf.numPages;
+        for(let p=1;p<=pdf.numPages;p++){
+          log(`Lendo ${f.name} — página ${p}/${pdf.numPages}`);
+          const page = await pdf.getPage(p);
+          const content = await page.getTextContent();
+          texts.push(itemsToTextLines(content.items));
+        }
+      }catch(err){ log(`Erro ao ler ${f.name}: ${err.message}`); }
+    }
+    state.pages = totalPages;
+    const all = texts.join("\n");
+    if(!all.trim()){
+      log("Nenhum texto encontrado — possivelmente PDF imagem/scan. Considere gerar o relatório detalhado ou usar OCR.");
+    }
+    const extracted = extractRows(all);
+    state.rows = extracted;
+    const dates = extracted.map(r => r.dateFinal).filter(Boolean).sort((a,b)=>a-b);
+    if(dates.length){
+      state.minDate=dates[0]; state.maxDate=dates[dates.length-1];
+      // default to last 15 days on load
+      const end = state.maxDate;
+      const start = new Date(end); start.setDate(start.getDate()-14);
+      dateStart.value = toInput(start); dateEnd.value = toInput(end);
+    }
+    kpiFiles.textContent = state.files.length.toString();
+    kpiPages.textContent = `${state.pages} página${state.pages===1?"":"s"}`;
+    updateView();
+    log(`Finalizado. Linhas extraídas: ${state.rows.length}.`);
+  }
+
+  function exportCSV(){
+    const filtered = applyDateFilter(state.rows);
+    const header = ["login","data_final","motivo","linha_raw"];
+    const rows = filtered.map(r => [r.login||"", r.dateFinal.toISOString(), r.reason, r.line.replaceAll('"','""')]);
+    let csv = header.join(",") + "\\n" + rows.map(r => r.map(v => `"${v}"`).join(",")).join("\\n");
+    const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "ixc_quedas_filtrado.csv"; a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  elProcess.addEventListener("click", processAll);
+  elCSV.addEventListener("click", exportCSV);
+  document.addEventListener("keydown",(e)=>{ if(e.key==="Enter") processAll(); });
+})();
+</script>
+</body>
+</html>
