@@ -59,6 +59,7 @@
     body.dark .date input{ background:#0b1220; color:var(--text); border-color:var(--border) }
     .quick{ display:flex; gap:8px; align-items:center }
     .quick button{ border:1px dashed var(--border); background:var(--surface); color:var(--text); padding:6px 10px; border-radius:999px; cursor:pointer; font-weight:600; font-size:12px }
+    .quick button.active{ border-style:solid; background:var(--brand); color:#fff; }
 
     /* Grid / cards */
     .grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
@@ -68,7 +69,7 @@
     .kpi{ display:flex; justify-content:space-between; align-items:center }
     .kpi .meta{ color:var(--muted); font-size:12px }
     .kpi .value{ font-size:26px; font-weight:700 }
-    /* Destaque para média/dia */
+    /* Destaque média/dia */
     #kpiAvgDay{ font-size:14px; font-weight:700 }
     #kpiAvgDay .avgVal{ font-size:18px; font-weight:800 }
     body.dark #kpiAvgDay .avgVal{ color:#93c5fd }
@@ -177,8 +178,6 @@
           <button type="button" data-q="30">Últimos 30d</button>
           <button type="button" id="btnClearDates">Limpar</button>
         </div>
-        <div class="chip"><input type="checkbox" id="chkLR" checked><span>Contar Lost-Carrier como queda</span></div>
-        <div class="chip"><input type="checkbox" id="chkUR" checked><span>Contar User-Request como queda</span></div>
       </div>
 
       <!-- Pages -->
@@ -286,7 +285,7 @@
     files:[], pages:0, rows:[],
     minDate:null, maxDate:null,
     reasonsSelected:new Set(DEFAULT_SELECTED),
-    hiddenReasons:new Set() // controlada pelas legendas dos gráficos
+    hiddenReasons:new Set()
   };
 
   const elInput = document.getElementById("fileInput");
@@ -294,12 +293,11 @@
   const elCSV = document.getElementById("btnCSV");
   const elClearAll = document.getElementById("btnClearAll");
   const elReasonsBox = document.getElementById("reasonsBox");
-  const chkLR = document.getElementById("chkLR");
-  const chkUR = document.getElementById("chkUR");
   const dateStart = document.getElementById("dateStart");
   const dateEnd = document.getElementById("dateEnd");
   const btnClearDates = document.getElementById("btnClearDates");
-  document.querySelectorAll(".quick button[data-q]").forEach(b => b.addEventListener("click", () => quickRange(+b.getAttribute("data-q"))));
+  const quickBtns = document.querySelectorAll(".quick button[data-q]");
+  quickBtns.forEach(b => b.addEventListener("click", () => { quickRange(+b.getAttribute("data-q")); }));
 
   const kpiFiles = document.getElementById("kpiFiles");
   const kpiPages = document.getElementById("kpiPages");
@@ -314,15 +312,17 @@
   const btnIpClear = document.getElementById("btnIpClear");
   const tblIpsBody = document.querySelector("#tblIps tbody");
 
-  chkLR.addEventListener("change", ()=>{ if(chkLR.checked) state.reasonsSelected.add("Lost-Carrier"); else state.reasonsSelected.delete("Lost-Carrier"); state.hiddenReasons.clear(); updateView(); });
-  chkUR.addEventListener("change", ()=>{ if(chkUR.checked) state.reasonsSelected.add("User-Request"); else state.reasonsSelected.delete("User-Request"); state.hiddenReasons.clear(); updateView(); });
-  dateStart.addEventListener("change", ()=>{ state.hiddenReasons.clear(); updateView(); renderIPs(); });
-  dateEnd.addEventListener("change", ()=>{ state.hiddenReasons.clear(); updateView(); renderIPs(); });
-  btnClearDates.addEventListener("click", () => { dateStart.value=""; dateEnd.value=""; state.hiddenReasons.clear(); updateView(); renderIPs(); });
+  dateStart.addEventListener("change", ()=>{ setQuickActive(null); state.hiddenReasons.clear(); updateView(); renderIPs(); });
+  dateEnd.addEventListener("change", ()=>{ setQuickActive(null); state.hiddenReasons.clear(); updateView(); renderIPs(); });
+  btnClearDates.addEventListener("click", () => { dateStart.value=""; dateEnd.value=""; setQuickActive(null); state.hiddenReasons.clear(); updateView(); renderIPs(); });
   ipSearch.addEventListener("input", renderIPs);
   btnIpClear.addEventListener("click", ()=>{ ipSearch.value=""; renderIPs(); });
 
   elClearAll.addEventListener("click", clearAll);
+
+  function setQuickActive(qStr){
+    quickBtns.forEach(b => b.classList.toggle("active", qStr && b.getAttribute("data-q")===qStr));
+  }
 
   function buildReasons(){
     elReasonsBox.innerHTML = "";
@@ -333,7 +333,7 @@
       label.innerHTML = `<input type="checkbox" id="${id}" ${state.reasonsSelected.has(r) ? "checked":""} /><span>${r}</span>`;
       label.querySelector("input").addEventListener("change", e => {
         if(e.target.checked) state.reasonsSelected.add(r); else state.reasonsSelected.delete(r);
-        state.hiddenReasons.clear(); // reset visuais de legenda
+        state.hiddenReasons.clear(); // reset da legenda
         updateView();
       });
       elReasonsBox.appendChild(label);
@@ -413,13 +413,11 @@
   // ====== CHARTS ======
   let chartByReason=null, chartPie=null, chartDaily=null;
 
-  // util para criar legendas que sincronizam os gráficos
   function legendClickSync(evt, legendItem, legend){
     const reason = legendItem.text;
     if(state.hiddenReasons.has(reason)) state.hiddenReasons.delete(reason);
     else state.hiddenReasons.add(reason);
 
-    // Para o gráfico clicado, deixar o comportamento padrão (toggle da visibilidade)
     const ci = legend.chart;
     if(ci.config.type === 'doughnut'){
       ci.toggleDataVisibility(legendItem.index);
@@ -430,7 +428,6 @@
       meta.hidden = meta.hidden === null ? !ci.data.datasets[dsIndex].hidden : null;
       ci.update();
     }
-    // Reconstroi os demais gráficos considerando state.hiddenReasons
     rebuildChartsOnly();
   }
 
@@ -443,34 +440,25 @@
     if(chartPie) chartPie.destroy();
     if(chartDaily) chartDaily.destroy();
 
-    // Razões visíveis (selecionadas e não ocultas pela legenda)
     const visibleReasons = labelsOrderAll.filter(r => !state.hiddenReasons.has(r));
 
-    // ----- BAR (por motivo) -----
-    const barLabels = visibleReasons;
-    const barData = barLabels.map(r => aggAllReasons[r]||0);
     chartByReason = new Chart(ctx1,{
       type:"bar",
-      data:{ labels:barLabels, datasets:[{label:"Ocorrências", data:barData}] },
+      data:{ labels:visibleReasons, datasets:[{label:"Ocorrências", data:visibleReasons.map(r => aggAllReasons[r]||0)}] },
       options:{ plugins:{ legend:{ display:false }}, animation:false }
     });
 
-    // ----- PIE (todas as razões selecionadas; a própria legenda controla hidden) -----
     const pieLabels = labelsOrderAll;
-    const pieData = pieLabels.map(r => aggAllReasons[r]||0);
     chartPie = new Chart(ctx2,{
       type:"doughnut",
-      data:{ labels: pieLabels, datasets:[{ data: pieData }] },
+      data:{ labels: pieLabels, datasets:[{ data: pieLabels.map(r => aggAllReasons[r]||0) }] },
       options:{ plugins:{ legend:{ onClick: legendClickSync }}, animation:false }
     });
-    // aplica estado "hidden" salvo
     pieLabels.forEach((r, i) => { if(state.hiddenReasons.has(r)) chartPie.toggleDataVisibility(i); });
     chartPie.update();
 
-    // ----- LINE (série diária por motivo visível) -----
     const lineLabels = seriesDailyAll.labels;
-    const lineDatasets = seriesDailyAll.datasets
-      .filter(ds => !state.hiddenReasons.has(ds.label)); // só motivos visíveis
+    const lineDatasets = seriesDailyAll.datasets.filter(ds => !state.hiddenReasons.has(ds.label));
     chartDaily = new Chart(ctx3,{
       type:"line",
       data:{ labels: lineLabels, datasets: lineDatasets },
@@ -492,25 +480,19 @@
     start.setDate(start.getDate() - (days - 1));
     dateStart.value = toInputlocal(start);
     dateEnd.value   = toInputlocal(end);
+    setQuickActive(String(days));
     state.hiddenReasons.clear();
     updateView();
     renderIPs();
   }
 
   function computeAggsForCharts(filtered){
-    // somente razões selecionadas
     const selected = state.reasonsSelected;
     const rowsSel = filtered.filter(r => selected.has(r.reason));
-
-    // agg por razão
     const aggByReason = {};
     for(const r of rowsSel){ aggByReason[r.reason] = (aggByReason[r.reason]||0)+1; }
-
-    // ordem das razões (por volume desc)
     const labelsOrder = Object.keys(aggByReason).sort((a,b)=>(aggByReason[b]-aggByReason[a]) || a.localeCompare(b));
-
-    // série diária
-    const buckets = {}; // {day: {reason:count}}
+    const buckets = {};
     for(const r of rowsSel){
       const d = r.dateFinal.toISOString().slice(0,10);
       buckets[d] = buckets[d] || {};
@@ -522,7 +504,6 @@
       data: dayLabels.map(day => buckets[day]?.[reason] || 0),
       tension: 0.3
     }));
-
     return { aggByReason, seriesDaily:{labels:dayLabels, datasets}, labelsOrder };
   }
 
@@ -536,7 +517,6 @@
     const filtered = applyDateFilter(state.rows);
     kpiRows.textContent = filtered.length.toLocaleString("pt-BR");
 
-    // KPIs baseados SOMENTE na seleção (não consideram legendas ocultas)
     const selected = state.reasonsSelected;
     const filteredSel = filtered.filter(r => selected.has(r.reason));
     const drops = filteredSel.length;
@@ -552,11 +532,9 @@
       kpiRange.textContent = "—"; kpiDistinctDays.textContent = "0 dias"; kpiAvgDay.innerHTML = `média/dia: <span class="avgVal">0</span>`;
     }
 
-    // Gráficos (consideram seleção + legendas ocultas)
     const { aggByReason, seriesDaily, labelsOrder } = computeAggsForCharts(filtered);
     buildCharts(aggByReason, seriesDaily, labelsOrder);
 
-    // tabela (mostra último 300 do período, independente da seleção)
     const last300 = filtered.slice(-300);
     const tbody = tblBody;
     tbody.innerHTML = "";
@@ -571,7 +549,6 @@
       tbody.appendChild(tr);
     }
 
-    // refresh reports/ip list se visíveis
     if(pageMap.relatorios.section.style.display!=="none"){ renderReports(); }
     if(pageMap.ips.section.style.display!=="none"){ renderIPs(); }
   }
@@ -596,7 +573,7 @@
     const fmt = (t)=>{ const d = new Date(t); const pad = n=> String(n).padStart(2,"0"); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
     for(const row of list){
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${row.ip}</td><td>${row.count}</td><td>${fmt(row.first)}</td><td>${fmt(row.last)}</td>`;
+      tr.innerHTML = `<td>${row.ip}</td><td>${row.count}</td><td>${fmt(row.first)}</td><td>${fmt[row.last]}</td>`;
       tbody.appendChild(tr);
     }
     if(!list.length){
@@ -606,7 +583,7 @@
     }
   }
 
-  // --------- Intelligent Reports (inalterado) ---------
+  // --------- Intelligent Reports (igual) ---------
   const reportBody = document.getElementById("reportBody");
   const tabs = document.querySelectorAll(".tab");
   tabs.forEach(t => t.addEventListener("click", () => { tabs.forEach(x=>x.classList.remove("active")); t.classList.add("active"); renderReports(); }));
@@ -687,6 +664,8 @@
       });
     }
     else if(active==="pic"){
+      const rows = state.rows.filter(r=>r.dateFinal).sort((a,b)=>a.dateFinal-b.dateFinal);
+      const maxD = rows[rows.length-1].dateFinal;
       const rows30 = rows.filter(r => r.dateFinal >= new Date(maxD.getTime()-29*86400000));
       const byDay = {};
       rows30.forEach(r => { const k=r.dateFinal.toISOString().slice(0,10); byDay[k]=(byDay[k]||0)+1; });
@@ -729,6 +708,7 @@
   async function processAll(){
     if(!state.files.length){ alert("Selecione pelo menos um PDF."); return; }
     state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null; state.hiddenReasons.clear();
+    setQuickActive(null);
     let totalPages=0; const texts=[];
     for(const f of state.files){
       try{
@@ -755,6 +735,7 @@
       const end = state.maxDate;
       const start = new Date(end); start.setDate(start.getDate()-14);
       dateStart.value = toInputlocal(start); dateEnd.value = toInputlocal(end);
+      setQuickActive("15");
     }
     kpiFiles.textContent = state.files.length.toString();
     kpiPages.textContent = `${state.pages} página${state.pages===1?"":"s"}`;
@@ -775,7 +756,7 @@
     state.files=[]; state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null; state.hiddenReasons.clear();
     document.getElementById("fileInput").value="";
     document.getElementById("logBox").textContent="Pronto.";
-    dateStart.value=""; dateEnd.value="";
+    dateStart.value=""; dateEnd.value=""; setQuickActive(null);
     kpiFiles.textContent="0"; kpiPages.textContent="0 páginas"; kpiRows.textContent="0";
     kpiDrops.textContent="0"; kpiAvgDay.innerHTML = `média/dia: <span class="avgVal">0</span>`; kpiRange.textContent="—"; kpiDistinctDays.textContent="0 dias";
     document.querySelector("#tbl tbody").innerHTML="";
