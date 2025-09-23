@@ -16,21 +16,11 @@
       --brand:#2563eb; --chip:#f3f4f6; --chip-border:#e5e7eb; --good:#16a34a; --warn:#f59e0b; --bad:#dc2626;
       --shadow: 0 10px 20px rgba(0,0,0,.06); --radius: 14px;
     }
-
-    /* ===== Tema escuro: só variáveis (resto herda automaticamente) ===== */
+    /* Modo escuro */
     body.dark{
-      --bg:#0f172a;
-      --sidebar:#0b1220;
-      --surface:#0f172a;
-      --text:#e5e7eb;
-      --muted:#94a3b8;
-      --border:#1f2937;
-      --brand:#3b82f6;
-      --chip:#111827;
-      --chip-border:#1f2937;
-      --good:#22c55e;
-      --warn:#fbbf24;
-      --bad:#f87171;
+      --bg:#0b1220; --sidebar:#0f172a; --surface:#0f172a; --text:#e5e7eb; --muted:#9ca3af; --border:#1f2937;
+      --brand:#60a5fa; --chip:#111827; --chip-border:#1f2937;
+      --shadow: 0 10px 20px rgba(0,0,0,.35);
     }
 
     *{ box-sizing:border-box }
@@ -44,29 +34,9 @@
     .brand .badge{ background:var(--brand); color:#fff; padding:4px 8px; display:grid; place-items:center; border-radius:8px; font-weight:800; letter-spacing:.5px }
     .menu{ display:flex; flex-direction:column; gap:6px; margin-top:10px }
     .menu a{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:var(--text); text-decoration:none; border-radius:10px }
-    .menu a.active, .menu a:hover{ background:#eef2ff22; color:var(--brand) }
+    .menu a.active, .menu a:hover{ background:#eef2ff20; color:#c7d2fe }
     .menu svg{ width:18px; height:18px }
     .menu .sep{ margin:12px 0 6px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em }
-
-    /* Botão de tema fixo na barra lateral (canto inferior esquerdo) */
-    .floating-toggle{
-      position: absolute;      /* relativo à .sidebar (posicionada/sticky) */
-      left: 16px;
-      bottom: 16px;
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      z-index: 10;
-    }
 
     /* Content */
     .content{ padding:24px 28px }
@@ -81,13 +51,14 @@
 
     /* Filters bar */
     .filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); margin-bottom:14px }
-    .chip{ background:var(--chip); border:1px solid var(--chip-border); padding:6px 10px; border-radius:999px; display:inline-flex; gap:8px; align-items:center; font-size:13px; color:var(--text) }
+    .chip{ background:var(--chip); border:1px solid var(--chip-border); padding:6px 10px; border-radius:999px; display:inline-flex; gap:8px; align-items:center; font-size:13px }
     .chip input{ accent-color:var(--brand) }
     .date{ display:flex; gap:8px; align-items:center }
     .date label{ font-size:12px; color:var(--muted) }
     .date input{ border:1px solid var(--border); padding:7px 8px; border-radius:8px; background:#fff }
+    body.dark .date input{ background:#0b1220; color:var(--text); border-color:var(--border) }
     .quick{ display:flex; gap:8px; align-items:center }
-    .quick button{ border:1px dashed var(--border); background:var(--surface); padding:6px 10px; border-radius:999px; cursor:pointer; font-weight:600; font-size:12px; color:var(--text) }
+    .quick button{ border:1px dashed var(--border); background:var(--surface); color:var(--text); padding:6px 10px; border-radius:999px; cursor:pointer; font-weight:600; font-size:12px }
 
     /* Grid / cards */
     .grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
@@ -95,26 +66,43 @@
     .col-3{ grid-column: span 3 } .col-4{ grid-column: span 4 } .col-6{ grid-column: span 6 } .col-8{ grid-column: span 8 } .col-12{ grid-column: span 12 }
     @media (max-width:1200px){ .col-8{ grid-column: span 12 } .col-6{ grid-column: span 12 } .col-4{ grid-column: span 6 } .col-3{ grid-column: span 6 } }
     .kpi{ display:flex; justify-content:space-between; align-items:center }
-    .kpi .meta{ color:var(--muted); font-size:12px } .kpi .value{ font-size:26px; font-weight:700 }
-    table{ width:100%; border-collapse:collapse; font-size:13px; color:var(--text) }
+    .kpi .meta{ color:var(--muted); font-size:12px }
+    .kpi .value{ font-size:26px; font-weight:700 }
+    /* Destaque para média/dia */
+    #kpiAvgDay{ font-size:14px; font-weight:700 }
+    #kpiAvgDay .avgVal{ font-size:18px; font-weight:800 }
+    body.dark #kpiAvgDay .avgVal{ color:#93c5fd }
+
+    table{ width:100%; border-collapse:collapse; font-size:13px }
     th,td{ border-bottom:1px solid var(--border); padding:10px 8px; text-align:left }
     th{ color:#374151; font-weight:600; background:#f9fafb; position:sticky; top:0 }
     tbody tr:hover{ background:#fafafa }
+    /* Tabela no modo escuro */
+    body.dark table thead th, body.dark th{ background:#0b1220 !important; color:var(--text) !important; border-color:#1f2937 !important; }
+    body.dark td{ color:var(--text) !important; border-color:#1f2937 !important; }
+    body.dark tbody tr:hover{ background:rgba(255,255,255,0.07) !important; }
+
     .pill{ padding:3px 8px; border-radius:999px; border:1px solid var(--border); font-weight:600; font-size:12px }
     .lost{ color:#b91c1c; border-color:#fecaca; background:#fff1f2 } .user{ color:#166534; border-color:#bbf7d0; background:#f0fdf4 }
     .log{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px; max-height:180px; overflow:auto }
     .muted{ color:var(--muted) }
 
-    /* Tabs for Reports */
+    /* Tabs */
     .tabs{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap }
     .tab{ padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); cursor:pointer; font-weight:600; color:var(--text) }
-    .tab.active{ background:#eef2ff22; border-color:#c7d2fe; color:#1e40af }
-    .report-grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
-    .hint{ font-size:12px; color:var(--muted) }
+    .tab.active{ background:#eef2ff20; border-color:#c7d2fe; color:#c7d2fe }
 
     /* IPs */
     .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
     .input{ border:1px solid var(--border); padding:8px 10px; border-radius:10px; background:#fff; min-width:240px }
+    body.dark .input{ background:#0b1220; color:var(--text); border-color:var(--border) }
+
+    /* Botão de tema (fixo no canto inferior esquerdo) */
+    .floating-toggle{
+      position: fixed; bottom:16px; left:16px; z-index:1000;
+      width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+      border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text); box-shadow:var(--shadow); font-size:18px; cursor:pointer;
+    }
   </style>
 </head>
 <body>
@@ -143,7 +131,6 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v14H6l-2 2V4Z" stroke="currentColor" stroke-width="1.5"/></svg>
           Log
         </a>
-        <!-- Botão de tema no canto inferior da sidebar -->
         <button id="btnDarkMode" class="floating-toggle" title="Alternar tema">🌙</button>
       </nav>
     </aside>
@@ -161,7 +148,7 @@
             <input type="file" id="fileInput" accept=".pdf,application/pdf" multiple>
           </label>
           <button class="btn primary" id="btnProcess">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M20 8A8 8 0 0 0 4 8m16 8a 8 0 0 1-16 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M20 8A8 8 0 0 0 4 8m16 8a8 8 0 0 1-16 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
             Processar
           </button>
           <button class="btn" id="btnCSV">
@@ -183,7 +170,6 @@
           <label>até</label>
           <input type="date" id="dateEnd">
         </div>
-
         <div class="quick">
           <span class="hint">Atalhos:</span>
           <button type="button" data-q="7">Últimos 7d</button>
@@ -191,7 +177,6 @@
           <button type="button" data-q="30">Últimos 30d</button>
           <button type="button" id="btnClearDates">Limpar</button>
         </div>
-
         <div class="chip"><input type="checkbox" id="chkLR" checked><span>Contar Lost-Carrier como queda</span></div>
         <div class="chip"><input type="checkbox" id="chkUR" checked><span>Contar User-Request como queda</span></div>
       </div>
@@ -201,7 +186,7 @@
         <div class="grid">
           <div class="card col-3"><div class="kpi"><div><div class="meta">Arquivos</div><div class="value" id="kpiFiles">0</div></div><div class="meta" id="kpiPages">0 páginas</div></div></div>
           <div class="card col-3"><div class="kpi"><div><div class="meta">Total de Registros</div><div class="value" id="kpiRows">0</div></div><div class="meta">todas as razões</div></div></div>
-          <div class="card col-3"><div class="kpi"><div><div class="meta">Quedas (seleção)</div><div class="value" id="kpiDrops">0</div></div><div class="meta" id="kpiAvgDay">média/dia: 0</div></div></div>
+          <div class="card col-3"><div class="kpi"><div><div class="meta">Quedas (seleção)</div><div class="value" id="kpiDrops">0</div></div><div class="meta" id="kpiAvgDay">média/dia: <span class="avgVal">0</span></div></div></div>
           <div class="card col-3"><div class="kpi"><div><div class="meta">Período coberto</div><div class="value" id="kpiRange">—</div></div><div class="meta" id="kpiDistinctDays">0 dias</div></div></div>
 
           <div class="card col-12">
@@ -287,7 +272,7 @@
     });
   });
 
-  function log(msg){ logBox.textContent += "\n" + msg; logBox.scrollTop = logBox.scrollHeight; }
+  function log(msg){ logBox.textContent += "\\n" + msg; logBox.scrollTop = logBox.scrollHeight; }
   const logBox = document.getElementById("logBox");
 
   // --------- Parsing setup ---------
@@ -297,7 +282,12 @@
   ];
   const DEFAULT_SELECTED = new Set(["Lost-Carrier","User-Request"]);
 
-  const state = { files:[], pages:0, rows:[], minDate:null, maxDate:null, reasonsSelected:new Set(DEFAULT_SELECTED) };
+  const state = {
+    files:[], pages:0, rows:[],
+    minDate:null, maxDate:null,
+    reasonsSelected:new Set(DEFAULT_SELECTED),
+    hiddenReasons:new Set() // controlada pelas legendas dos gráficos
+  };
 
   const elInput = document.getElementById("fileInput");
   const elProcess = document.getElementById("btnProcess");
@@ -324,11 +314,11 @@
   const btnIpClear = document.getElementById("btnIpClear");
   const tblIpsBody = document.querySelector("#tblIps tbody");
 
-  chkLR.addEventListener("change", ()=>{ if(chkLR.checked) state.reasonsSelected.add("Lost-Carrier"); else state.reasonsSelected.delete("Lost-Carrier"); updateView(); });
-  chkUR.addEventListener("change", ()=>{ if(chkUR.checked) state.reasonsSelected.add("User-Request"); else state.reasonsSelected.delete("User-Request"); updateView(); });
-  dateStart.addEventListener("change", ()=>{ updateView(); renderIPs(); });
-  dateEnd.addEventListener("change", ()=>{ updateView(); renderIPs(); });
-  btnClearDates.addEventListener("click", () => { dateStart.value=""; dateEnd.value=""; updateView(); renderIPs(); });
+  chkLR.addEventListener("change", ()=>{ if(chkLR.checked) state.reasonsSelected.add("Lost-Carrier"); else state.reasonsSelected.delete("Lost-Carrier"); state.hiddenReasons.clear(); updateView(); });
+  chkUR.addEventListener("change", ()=>{ if(chkUR.checked) state.reasonsSelected.add("User-Request"); else state.reasonsSelected.delete("User-Request"); state.hiddenReasons.clear(); updateView(); });
+  dateStart.addEventListener("change", ()=>{ state.hiddenReasons.clear(); updateView(); renderIPs(); });
+  dateEnd.addEventListener("change", ()=>{ state.hiddenReasons.clear(); updateView(); renderIPs(); });
+  btnClearDates.addEventListener("click", () => { dateStart.value=""; dateEnd.value=""; state.hiddenReasons.clear(); updateView(); renderIPs(); });
   ipSearch.addEventListener("input", renderIPs);
   btnIpClear.addEventListener("click", ()=>{ ipSearch.value=""; renderIPs(); });
 
@@ -343,6 +333,7 @@
       label.innerHTML = `<input type="checkbox" id="${id}" ${state.reasonsSelected.has(r) ? "checked":""} /><span>${r}</span>`;
       label.querySelector("input").addEventListener("change", e => {
         if(e.target.checked) state.reasonsSelected.add(r); else state.reasonsSelected.delete(r);
+        state.hiddenReasons.clear(); // reset visuais de legenda
         updateView();
       });
       elReasonsBox.appendChild(label);
@@ -419,17 +410,72 @@
     return uniq;
   }
 
+  // ====== CHARTS ======
   let chartByReason=null, chartPie=null, chartDaily=null;
-  function buildCharts(aggByReason, seriesDaily){
+
+  // util para criar legendas que sincronizam os gráficos
+  function legendClickSync(evt, legendItem, legend){
+    const reason = legendItem.text;
+    if(state.hiddenReasons.has(reason)) state.hiddenReasons.delete(reason);
+    else state.hiddenReasons.add(reason);
+
+    // Para o gráfico clicado, deixar o comportamento padrão (toggle da visibilidade)
+    const ci = legend.chart;
+    if(ci.config.type === 'doughnut'){
+      ci.toggleDataVisibility(legendItem.index);
+      ci.update();
+    } else if (ci.config.type === 'line'){
+      const dsIndex = legendItem.datasetIndex;
+      const meta = ci.getDatasetMeta(dsIndex);
+      meta.hidden = meta.hidden === null ? !ci.data.datasets[dsIndex].hidden : null;
+      ci.update();
+    }
+    // Reconstroi os demais gráficos considerando state.hiddenReasons
+    rebuildChartsOnly();
+  }
+
+  function buildCharts(aggAllReasons, seriesDailyAll, labelsOrderAll){
     const ctx1 = document.getElementById("chartByReason").getContext("2d");
     const ctx2 = document.getElementById("chartPie").getContext("2d");
     const ctx3 = document.getElementById("chartDaily").getContext("2d");
+
     if(chartByReason) chartByReason.destroy();
     if(chartPie) chartPie.destroy();
     if(chartDaily) chartDaily.destroy();
-    chartByReason = new Chart(ctx1,{ type:"bar", data:{ labels:Object.keys(aggByReason), datasets:[{label:"Ocorrências", data:Object.values(aggByReason)}] }, options:{ plugins:{legend:{display:false}}}});
-    chartPie = new Chart(ctx2,{ type:"doughnut", data:{ labels:Object.keys(aggByReason), datasets:[{ data:Object.values(aggByReason)}] } });
-    chartDaily = new Chart(ctx3,{ type:"line", data: seriesDaily, options:{ interaction:{ mode:"index", intersect:false }}});
+
+    // Razões visíveis (selecionadas e não ocultas pela legenda)
+    const visibleReasons = labelsOrderAll.filter(r => !state.hiddenReasons.has(r));
+
+    // ----- BAR (por motivo) -----
+    const barLabels = visibleReasons;
+    const barData = barLabels.map(r => aggAllReasons[r]||0);
+    chartByReason = new Chart(ctx1,{
+      type:"bar",
+      data:{ labels:barLabels, datasets:[{label:"Ocorrências", data:barData}] },
+      options:{ plugins:{ legend:{ display:false }}, animation:false }
+    });
+
+    // ----- PIE (todas as razões selecionadas; a própria legenda controla hidden) -----
+    const pieLabels = labelsOrderAll;
+    const pieData = pieLabels.map(r => aggAllReasons[r]||0);
+    chartPie = new Chart(ctx2,{
+      type:"doughnut",
+      data:{ labels: pieLabels, datasets:[{ data: pieData }] },
+      options:{ plugins:{ legend:{ onClick: legendClickSync }}, animation:false }
+    });
+    // aplica estado "hidden" salvo
+    pieLabels.forEach((r, i) => { if(state.hiddenReasons.has(r)) chartPie.toggleDataVisibility(i); });
+    chartPie.update();
+
+    // ----- LINE (série diária por motivo visível) -----
+    const lineLabels = seriesDailyAll.labels;
+    const lineDatasets = seriesDailyAll.datasets
+      .filter(ds => !state.hiddenReasons.has(ds.label)); // só motivos visíveis
+    chartDaily = new Chart(ctx3,{
+      type:"line",
+      data:{ labels: lineLabels, datasets: lineDatasets },
+      options:{ interaction:{ mode:"index", intersect:false }, plugins:{ legend:{ onClick: legendClickSync }}, animation:false }
+    });
   }
 
   function applyDateFilter(arr){
@@ -446,46 +492,71 @@
     start.setDate(start.getDate() - (days - 1));
     dateStart.value = toInputlocal(start);
     dateEnd.value   = toInputlocal(end);
+    state.hiddenReasons.clear();
     updateView();
     renderIPs();
+  }
+
+  function computeAggsForCharts(filtered){
+    // somente razões selecionadas
+    const selected = state.reasonsSelected;
+    const rowsSel = filtered.filter(r => selected.has(r.reason));
+
+    // agg por razão
+    const aggByReason = {};
+    for(const r of rowsSel){ aggByReason[r.reason] = (aggByReason[r.reason]||0)+1; }
+
+    // ordem das razões (por volume desc)
+    const labelsOrder = Object.keys(aggByReason).sort((a,b)=>(aggByReason[b]-aggByReason[a]) || a.localeCompare(b));
+
+    // série diária
+    const buckets = {}; // {day: {reason:count}}
+    for(const r of rowsSel){
+      const d = r.dateFinal.toISOString().slice(0,10);
+      buckets[d] = buckets[d] || {};
+      buckets[d][r.reason] = (buckets[d][r.reason]||0)+1;
+    }
+    const dayLabels = Object.keys(buckets).sort();
+    const datasets = labelsOrder.map(reason => ({
+      label: reason,
+      data: dayLabels.map(day => buckets[day]?.[reason] || 0),
+      tension: 0.3
+    }));
+
+    return { aggByReason, seriesDaily:{labels:dayLabels, datasets}, labelsOrder };
+  }
+
+  function rebuildChartsOnly(){
+    const filtered = applyDateFilter(state.rows);
+    const { aggByReason, seriesDaily, labelsOrder } = computeAggsForCharts(filtered);
+    buildCharts(aggByReason, seriesDaily, labelsOrder);
   }
 
   function updateView(){
     const filtered = applyDateFilter(state.rows);
     kpiRows.textContent = filtered.length.toLocaleString("pt-BR");
 
-    const aggByReason = {};
-    for(const r of filtered){ aggByReason[r.reason] = (aggByReason[r.reason]||0)+1; }
-
-    let drops = 0;
-    for(const [reason,count] of Object.entries(aggByReason)){
-      if(state.reasonsSelected.has(reason)) drops += count;
-    }
+    // KPIs baseados SOMENTE na seleção (não consideram legendas ocultas)
+    const selected = state.reasonsSelected;
+    const filteredSel = filtered.filter(r => selected.has(r.reason));
+    const drops = filteredSel.length;
     kpiDrops.textContent = drops.toLocaleString("pt-BR");
 
     if(state.minDate && state.maxDate){
       kpiRange.textContent = `${formatDateBR(state.minDate)} — ${formatDateBR(state.maxDate)}`;
-      const dayKeys = new Set(filtered.map(r => r.dateFinal.toISOString().slice(0,10)));
-      kpiDistinctDays.textContent = `${dayKeys.size} dia${dayKeys.size===1?"":"s"}`;
+      const dayKeys = new Set(filteredSel.map(r => r.dateFinal.toISOString().slice(0,10)));
       const avg = dayKeys.size ? drops / dayKeys.size : 0;
-      kpiAvgDay.textContent = `média/dia: ${avg.toFixed(2)}`;
+      kpiDistinctDays.textContent = `${dayKeys.size} dia${dayKeys.size===1?"":"s"}`;
+      kpiAvgDay.innerHTML = `média/dia: <span class="avgVal">${avg.toFixed(2)}</span>`;
     } else {
-      kpiRange.textContent = "—"; kpiDistinctDays.textContent = "0 dias"; kpiAvgDay.textContent = "média/dia: 0";
+      kpiRange.textContent = "—"; kpiDistinctDays.textContent = "0 dias"; kpiAvgDay.innerHTML = `média/dia: <span class="avgVal">0</span>`;
     }
 
-    const buckets = {};
-    for(const r of filtered){
-      const d = r.dateFinal.toISOString().slice(0,10);
-      buckets[d] = buckets[d] || {};
-      buckets[d][r.reason] = (buckets[d][r.reason]||0)+1;
-    }
-    const labels = Object.keys(buckets).sort();
-    const datasets = Array.from(state.reasonsSelected).map(reason => ({
-      label: reason,
-      data: labels.map(day => buckets[day][reason]||0)
-    }));
-    buildCharts(aggByReason, { labels, datasets });
+    // Gráficos (consideram seleção + legendas ocultas)
+    const { aggByReason, seriesDaily, labelsOrder } = computeAggsForCharts(filtered);
+    buildCharts(aggByReason, seriesDaily, labelsOrder);
 
+    // tabela (mostra último 300 do período, independente da seleção)
     const last300 = filtered.slice(-300);
     const tbody = tblBody;
     tbody.innerHTML = "";
@@ -500,6 +571,7 @@
       tbody.appendChild(tr);
     }
 
+    // refresh reports/ip list se visíveis
     if(pageMap.relatorios.section.style.display!=="none"){ renderReports(); }
     if(pageMap.ips.section.style.display!=="none"){ renderIPs(); }
   }
@@ -512,8 +584,7 @@
       const ip = r.ip;
       const t = r.dateFinal.getTime();
       if(!map[ip]) map[ip] = { ip, count:0, first:t, last:t };
-      const m = map[ip];
-      m.count += 1; if(t<m.first) m.first=t; if(t>m.last) m.last=t;
+      const m = map[ip]; m.count += 1; if(t<m.first) m.first=t; if(t>m.last) m.last=t;
     }
     let list = Object.values(map);
     const q = ipSearch.value.trim();
@@ -522,11 +593,7 @@
 
     const tbody = tblIpsBody;
     tbody.innerHTML = "";
-    const fmt = (t)=>{
-      const d = new Date(t);
-      const pad = n=> String(n).padStart(2,"0");
-      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    };
+    const fmt = (t)=>{ const d = new Date(t); const pad = n=> String(n).padStart(2,"0"); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
     for(const row of list){
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>${row.ip}</td><td>${row.count}</td><td>${fmt(row.first)}</td><td>${fmt(row.last)}</td>`;
@@ -539,7 +606,7 @@
     }
   }
 
-  // --------- Intelligent Reports ---------
+  // --------- Intelligent Reports (inalterado) ---------
   const reportBody = document.getElementById("reportBody");
   const tabs = document.querySelectorAll(".tab");
   tabs.forEach(t => t.addEventListener("click", () => { tabs.forEach(x=>x.classList.remove("active")); t.classList.add("active"); renderReports(); }));
@@ -547,10 +614,7 @@
   function renderReports(){
     const active = document.querySelector(".tab.active").getAttribute("data-rpt");
     reportBody.innerHTML = "";
-    if(!state.rows.length){
-      reportBody.innerHTML = "<div class='muted'>Nenhum dado carregado ainda.</div>";
-      return;
-    }
+    if(!state.rows.length){ reportBody.innerHTML = "<div class='muted'>Nenhum dado carregado ainda.</div>"; return; }
     const rows = state.rows.filter(r=>r.dateFinal).sort((a,b)=>a.dateFinal-b.dateFinal);
     const maxD = rows[rows.length-1].dateFinal;
     const start15 = new Date(maxD); start15.setDate(start15.getDate()-14);
@@ -561,15 +625,8 @@
 
     function agg(arr){
       const byReason={}, byDay={}, byLogin={};
-      arr.forEach(r => {
-        byReason[r.reason]=(byReason[r.reason]||0)+1;
-        const k=r.dateFinal.toISOString().slice(0,10);
-        byDay[k]=(byDay[k]||0)+1;
-        if(r.login) byLogin[r.login]=(byLogin[r.login]||0)+1;
-      });
-      const total = arr.length;
-      const days = Object.keys(byDay).length || 1;
-      const avg = total/days;
+      arr.forEach(r => { byReason[r.reason]=(byReason[r.reason]||0)+1; const k=r.dateFinal.toISOString().slice(0,10); byDay[k]=(byDay[k]||0)+1; if(r.login) byLogin[r.login]=(byLogin[r.login]||0)+1; });
+      const total = arr.length; const days = Object.keys(byDay).length || 1; const avg = total/days;
       const topReason = Object.entries(byReason).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
       const topLogin = Object.entries(byLogin).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
       const peakDay = Object.entries(byDay).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
@@ -671,7 +728,7 @@
 
   async function processAll(){
     if(!state.files.length){ alert("Selecione pelo menos um PDF."); return; }
-    state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null;
+    state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null; state.hiddenReasons.clear();
     let totalPages=0; const texts=[];
     for(const f of state.files){
       try{
@@ -709,18 +766,18 @@
     const filtered = applyDateFilter(state.rows);
     const header = ["login","data_final","motivo","ip","linha_raw"];
     const rows = filtered.map(r => [r.login||"", r.dateFinal.toISOString(), r.reason, r.ip||"", r.line.replaceAll('"','""')]);
-    let csv = header.join(",") + "\n" + rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");
+    let csv = header.join(",") + "\\n" + rows.map(r => r.map(v => `"${v}"`).join(",")).join("\\n");
     const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "ixc_quedas_filtrado.csv"; a.click(); URL.revokeObjectURL(a.href);
   }
 
   function clearAll(){
-    state.files=[]; state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null;
+    state.files=[]; state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null; state.hiddenReasons.clear();
     document.getElementById("fileInput").value="";
     document.getElementById("logBox").textContent="Pronto.";
     dateStart.value=""; dateEnd.value="";
     kpiFiles.textContent="0"; kpiPages.textContent="0 páginas"; kpiRows.textContent="0";
-    kpiDrops.textContent="0"; kpiAvgDay.textContent="média/dia: 0"; kpiRange.textContent="—"; kpiDistinctDays.textContent="0 dias";
+    kpiDrops.textContent="0"; kpiAvgDay.innerHTML = `média/dia: <span class="avgVal">0</span>`; kpiRange.textContent="—"; kpiDistinctDays.textContent="0 dias";
     document.querySelector("#tbl tbody").innerHTML="";
     document.querySelector("#tblIps tbody").innerHTML="";
     if(chartByReason) chartByReason.destroy();
@@ -728,21 +785,17 @@
     if(chartDaily) chartDaily.destroy();
   }
 
-  // ===== Toggle de tema (somente dark mode) =====
+  // Tema
   const btnDark = document.getElementById("btnDarkMode");
   btnDark.addEventListener("click", () => {
-    const next = document.body.classList.contains("dark") ? "light" : "dark";
-    document.body.classList.toggle("dark", next === "dark");
-    btnDark.textContent = (next === "dark") ? "☀️" : "🌙";
-    localStorage.setItem("theme", next);
+    document.body.classList.toggle("dark");
+    if(document.body.classList.contains("dark")){
+      btnDark.textContent = "☀️"; localStorage.setItem("theme","dark");
+    } else {
+      btnDark.textContent = "🌙"; localStorage.setItem("theme","light");
+    }
   });
-  // aplica preferência salva
-  (function initTheme(){
-    const saved = localStorage.getItem("theme");
-    const mode = saved === "dark" ? "dark" : "light";
-    document.body.classList.toggle("dark", mode === "dark");
-    btnDark.textContent = (mode === "dark") ? "☀️" : "🌙";
-  })();
+  if(localStorage.getItem("theme")==="dark"){ document.body.classList.add("dark"); btnDark.textContent = "☀️"; }
 
   elProcess.addEventListener("click", processAll);
   elCSV.addEventListener("click", exportCSV);
