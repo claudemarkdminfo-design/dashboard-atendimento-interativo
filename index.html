@@ -319,7 +319,7 @@
     const pad = n => String(n).padStart(2,"0");
     return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
-  function toInput(d){ return d.toISOString().slice(0,10); }
+  function toInputlocal(d){ return d.toISOString().slice(0,10); }
 
   function itemsToTextLines(items){
     const rows = {};
@@ -643,7 +643,7 @@
       state.minDate=dates[0]; state.maxDate=dates[dates.length-1];
       const end = state.maxDate;
       const start = new Date(end); start.setDate(start.getDate()-14);
-      dateStart.value = toInput(start); dateEnd.value = toInput(end);
+      dateStart.value = toInputlocal(start); dateEnd.value = toInputlocal(end);
     }
     kpiFiles.textContent = state.files.length.toString();
     kpiPages.textContent = `${state.pages} página${state.pages===1?"":"s"}`;
