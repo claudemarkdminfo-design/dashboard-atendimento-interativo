@@ -330,7 +330,7 @@
   }
   function toInput(d){ return d.toISOString().slice(0,10); }
 
-  function itemsToTextLines(items){
+  function (items){
     const rows = {};
     items.forEach(it => {
       const y = Math.round(it.transform[5]);
@@ -610,6 +610,15 @@
       });
     }
   }
+function parseDateBR(str){ ... }
+function formatDateBR(d){ ... }
+function toInput(d){ return d.toISOString().slice(0,10); }
+
+// 👇 ADICIONE AQUI
+function toInputLocal(d){
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
 
 function quickRange(dias){
   // usa a data final já selecionada; se vazia, usa o max do dataset; se ainda vazio, hoje
