@@ -396,8 +396,9 @@
     const de = dateEnd.value ? new Date(dateEnd.value + "T23:59:59") : null;
     return arr.filter(r => r.dateFinal && (!ds || r.dateFinal>=ds) && (!de || r.dateFinal<=de));
   }
-function quickRange(days){
-  if (!state.rows.length) {
+  
+  function quickRange(days){
+   if (!state.rows.length) {
     log("Carregue os PDFs antes de usar os atalhos de datas.");
     return;
   }
