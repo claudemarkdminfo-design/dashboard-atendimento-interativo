@@ -137,14 +137,13 @@
           <input type="date" id="dateStart">
           <label>até</label>
           <input type="date" id="dateEnd">
-        </div>
-        <div class="quick">
-          <span class="hint">Atalhos:</span>
-          <button data-q="7">Últimos 7d</button>
-          <button data-q="15">Últimos 15d</button>
-          <button data-q="30">Últimos 30d</button>
-          <button id="btnClearDates">Limpar</button>
-        </div>
+      <div class="quick">
+  <span class="hint">Atalhos:</span>
+  <button type="button" data-q="7">Últimos 7d</button>
+  <button type="button" data-q="15">Últimos 15d</button>
+  <button type="button" data-q="30">Últimos 30d</button>
+  <button type="button" id="btnClearDates">Limpar</button>
+      </div>
         <div class="chip"><input type="checkbox" id="chkLR" checked><span>Contar Lost-Carrier como queda</span></div>
         <div class="chip"><input type="checkbox" id="chkUR" checked><span>Contar User-Request como queda</span></div>
       </div>
@@ -602,6 +601,32 @@
     }
   }
 
+function quickRange(dias){
+  // usa a data final já selecionada; se vazia, usa o max do dataset; se ainda vazio, hoje
+  const baseEnd =
+    (dateEnd.value ? new Date(dateEnd.value + "T00:00:00") :
+    (state.maxDate ? new Date(state.maxDate) : new Date()));
+
+  // zera hora pra evitar fuso
+  const end = new Date(baseEnd.getFullYear(), baseEnd.getMonth(), baseEnd.getDate());
+  const start = new Date(end); 
+  start.setDate(start.getDate() - (dias - 1));
+
+  // preenche inputs no formato YYYY-MM-DD
+  dateStart.value = toInput(start);
+  dateEnd.value   = toInput(end);
+
+  // dispara 'change' caso sua lógica escute esse evento
+  dateStart.dispatchEvent(new Event("change", {bubbles:true}));
+  dateEnd.dispatchEvent(new Event("change", {bubbles:true}));
+
+  // já recalcula visão atual
+  updateView();
+  // se a aba de IPs estiver aberta, atualiza também
+  if(pageMap.ips.section.style.display!=="none"){ renderIPs(); }
+}
+
+  
   // --------- Core processing ---------
   async function readPDF(file){
     const buf = await file.arrayBuffer();
