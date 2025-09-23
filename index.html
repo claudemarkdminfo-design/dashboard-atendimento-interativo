@@ -396,6 +396,24 @@
     const de = dateEnd.value ? new Date(dateEnd.value + "T23:59:59") : null;
     return arr.filter(r => r.dateFinal && (!ds || r.dateFinal>=ds) && (!de || r.dateFinal<=de));
   }
+function quickRange(days){
+  if (!state.rows.length) {
+    log("Carregue os PDFs antes de usar os atalhos de datas.");
+    return;
+  }
+
+  const end = state.maxDate ? new Date(state.maxDate) : new Date();
+  end.setHours(0,0,0,0);
+
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+
+  dateStart.value = toInputlocal(start);
+  dateEnd.value   = toInputlocal(end);
+
+  updateView();
+  renderIPs();
+}
 
   function updateView(){
     const filtered = applyDateFilter(state.rows);
@@ -446,26 +464,6 @@
                       <td class="muted">${r.line.replaceAll("<","&lt;")}</td>`;
       tbody.appendChild(tr);
     }
-    
-function quickRange(days){
-  if (!state.rows.length) {
-    log("Carregue os PDFs antes de usar os atalhos de datas.");
-    return;
-  }
-
-  const end = state.maxDate ? new Date(state.maxDate) : new Date();
-  end.setHours(0,0,0,0);
-
-  const start = new Date(end);
-  start.setDate(start.getDate() - (days - 1));
-
-  dateStart.value = toInputlocal(start);
-  dateEnd.value   = toInputlocal(end);
-
-  updateView();
-  renderIPs();
-}
-
     
     // refresh reports/ip list if visible
     if(pageMap.relatorios.section.style.display!=="none"){ renderReports(); }
