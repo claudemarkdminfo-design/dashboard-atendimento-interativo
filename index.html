@@ -16,38 +16,79 @@
       --brand:#2563eb; --chip:#f3f4f6; --chip-border:#e5e7eb; --good:#16a34a; --warn:#f59e0b; --bad:#dc2626;
       --shadow: 0 10px 20px rgba(0,0,0,.06); --radius: 14px;
     }
+
+    /* ===== Tema escuro: só variáveis (resto herda automaticamente) ===== */
+    body.dark{
+      --bg:#0f172a;
+      --sidebar:#0b1220;
+      --surface:#0f172a;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:#1f2937;
+      --brand:#3b82f6;
+      --chip:#111827;
+      --chip-border:#1f2937;
+      --good:#22c55e;
+      --warn:#fbbf24;
+      --bad:#f87171;
+    }
+
     *{ box-sizing:border-box }
     html,body{ height:100% }
     body{ margin:0; background:var(--bg); color:var(--text); font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto; }
     .layout{ display:grid; grid-template-columns: 264px 1fr; min-height:100vh; }
+
     /* Sidebar */
     .sidebar{ background:var(--sidebar); border-right:1px solid var(--border); padding:20px; position:sticky; top:0; height:100vh; }
     .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; margin-bottom:16px; }
     .brand .badge{ background:var(--brand); color:#fff; padding:4px 8px; display:grid; place-items:center; border-radius:8px; font-weight:800; letter-spacing:.5px }
     .menu{ display:flex; flex-direction:column; gap:6px; margin-top:10px }
-    .menu a{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:#111827; text-decoration:none; border-radius:10px }
-    .menu a.active, .menu a:hover{ background:#eef2ff; color:#1e40af }
+    .menu a{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:var(--text); text-decoration:none; border-radius:10px }
+    .menu a.active, .menu a:hover{ background:#eef2ff22; color:var(--brand) }
     .menu svg{ width:18px; height:18px }
     .menu .sep{ margin:12px 0 6px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em }
+
+    /* Botão de tema fixo na barra lateral (canto inferior esquerdo) */
+    .floating-toggle{
+      position: absolute;      /* relativo à .sidebar (posicionada/sticky) */
+      left: 16px;
+      bottom: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      z-index: 10;
+    }
+
     /* Content */
     .content{ padding:24px 28px }
     .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:12px; flex-wrap:wrap }
     .title h1{ margin:0; font-size:22px }
     .title p{ margin:4px 0 0; color:var(--muted); font-size:14px }
     .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
-    .btn{ display:inline-flex; align-items:center; gap:8px; background:#ffffff; border:1px solid var(--border); padding:9px 12px; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:var(--shadow) }
+    .btn{ display:inline-flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); padding:9px 12px; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:var(--shadow); color:var(--text) }
     .btn.primary{ background: var(--brand); color:#fff; border-color:var(--brand) }
     .btn.danger{ color: var(--bad); border-color:#fecaca }
     .btn input[type=file]{ display:none }
+
     /* Filters bar */
     .filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); margin-bottom:14px }
-    .chip{ background:var(--chip); border:1px solid var(--chip-border); padding:6px 10px; border-radius:999px; display:inline-flex; gap:8px; align-items:center; font-size:13px }
+    .chip{ background:var(--chip); border:1px solid var(--chip-border); padding:6px 10px; border-radius:999px; display:inline-flex; gap:8px; align-items:center; font-size:13px; color:var(--text) }
     .chip input{ accent-color:var(--brand) }
     .date{ display:flex; gap:8px; align-items:center }
     .date label{ font-size:12px; color:var(--muted) }
     .date input{ border:1px solid var(--border); padding:7px 8px; border-radius:8px; background:#fff }
     .quick{ display:flex; gap:8px; align-items:center }
-    .quick button{ border:1px dashed var(--border); background:#fff; padding:6px 10px; border-radius:999px; cursor:pointer; font-weight:600; font-size:12px }
+    .quick button{ border:1px dashed var(--border); background:var(--surface); padding:6px 10px; border-radius:999px; cursor:pointer; font-weight:600; font-size:12px; color:var(--text) }
+
     /* Grid / cards */
     .grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
     .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow) }
@@ -55,40 +96,25 @@
     @media (max-width:1200px){ .col-8{ grid-column: span 12 } .col-6{ grid-column: span 12 } .col-4{ grid-column: span 6 } .col-3{ grid-column: span 6 } }
     .kpi{ display:flex; justify-content:space-between; align-items:center }
     .kpi .meta{ color:var(--muted); font-size:12px } .kpi .value{ font-size:26px; font-weight:700 }
-    table{ width:100%; border-collapse:collapse; font-size:13px }
+    table{ width:100%; border-collapse:collapse; font-size:13px; color:var(--text) }
     th,td{ border-bottom:1px solid var(--border); padding:10px 8px; text-align:left }
     th{ color:#374151; font-weight:600; background:#f9fafb; position:sticky; top:0 }
     tbody tr:hover{ background:#fafafa }
     .pill{ padding:3px 8px; border-radius:999px; border:1px solid var(--border); font-weight:600; font-size:12px }
     .lost{ color:#b91c1c; border-color:#fecaca; background:#fff1f2 } .user{ color:#166534; border-color:#bbf7d0; background:#f0fdf4 }
-    .log{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#fff; border:1px solid var(--border); border-radius:12px; padding:10px; max-height:180px; overflow:auto }
+    .log{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px; max-height:180px; overflow:auto }
     .muted{ color:var(--muted) }
+
     /* Tabs for Reports */
     .tabs{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap }
-    .tab{ padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer; font-weight:600 }
-    .tab.active{ background:#eef2ff; border-color:#c7d2fe; color:#1e40af }
+    .tab{ padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); cursor:pointer; font-weight:600; color:var(--text) }
+    .tab.active{ background:#eef2ff22; border-color:#c7d2fe; color:#1e40af }
     .report-grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
     .hint{ font-size:12px; color:var(--muted) }
+
     /* IPs */
     .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
     .input{ border:1px solid var(--border); padding:8px 10px; border-radius:10px; background:#fff; min-width:240px }
-    .btnDarkMode {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  z-index: 1000;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow);
-}
-
   </style>
 </head>
 <body>
@@ -117,6 +143,8 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v14H6l-2 2V4Z" stroke="currentColor" stroke-width="1.5"/></svg>
           Log
         </a>
+        <!-- Botão de tema no canto inferior da sidebar -->
+        <button id="btnDarkMode" class="floating-toggle" title="Alternar tema">🌙</button>
       </nav>
     </aside>
 
@@ -133,7 +161,7 @@
             <input type="file" id="fileInput" accept=".pdf,application/pdf" multiple>
           </label>
           <button class="btn primary" id="btnProcess">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M20 8A8 8 0 0 0 4 8m16 8a8 8 0 0 1-16 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M20 8A8 8 0 0 0 4 8m16 8a 8 0 0 1-16 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
             Processar
           </button>
           <button class="btn" id="btnCSV">
@@ -149,25 +177,24 @@
 
       <!-- Global Filters -->
       <div class="filters">
-  <div class="date">
-    <label>De</label>
-    <input type="date" id="dateStart">
-    <label>até</label>
-    <input type="date" id="dateEnd">
-  </div> <!-- ⟵ FECHA AQUI -->
+        <div class="date">
+          <label>De</label>
+          <input type="date" id="dateStart">
+          <label>até</label>
+          <input type="date" id="dateEnd">
+        </div>
 
-  <div class="quick">
-    <span class="hint">Atalhos:</span>
-    <button type="button" data-q="7">Últimos 7d</button>
-    <button type="button" data-q="15">Últimos 15d</button>
-    <button type="button" data-q="30">Últimos 30d</button>
-    <button type="button" id="btnClearDates">Limpar</button>
-  </div>
+        <div class="quick">
+          <span class="hint">Atalhos:</span>
+          <button type="button" data-q="7">Últimos 7d</button>
+          <button type="button" data-q="15">Últimos 15d</button>
+          <button type="button" data-q="30">Últimos 30d</button>
+          <button type="button" id="btnClearDates">Limpar</button>
+        </div>
 
-  <div class="chip"><input type="checkbox" id="chkLR" checked><span>Contar Lost-Carrier como queda</span></div>
-  <div class="chip"><input type="checkbox" id="chkUR" checked><span>Contar User-Request como queda</span></div>
-</div>
-
+        <div class="chip"><input type="checkbox" id="chkLR" checked><span>Contar Lost-Carrier como queda</span></div>
+        <div class="chip"><input type="checkbox" id="chkUR" checked><span>Contar User-Request como queda</span></div>
+      </div>
 
       <!-- Pages -->
       <section id="page-dashboard">
@@ -232,16 +259,9 @@
           <div class="log" id="logBox">Pronto.</div>
         </div>
       </section>
-      
-    </section>
-      <button class="btn" id="btnDarkMode">🌙</button>
-  </div>
-    </section>
-      
     </main>
   </div>
 
-  
 <script>
 (function(){
   // --------- Helpers UI & Nav ---------
@@ -267,7 +287,7 @@
     });
   });
 
-  function log(msg){ logBox.textContent += "\\n" + msg; logBox.scrollTop = logBox.scrollHeight; }
+  function log(msg){ logBox.textContent += "\n" + msg; logBox.scrollTop = logBox.scrollHeight; }
   const logBox = document.getElementById("logBox");
 
   // --------- Parsing setup ---------
@@ -374,12 +394,10 @@
       const dates = Array.from(windowText.matchAll(DATE_RE)).map(m=>m[0]);
       const dateFinal = dates.length ? parseDateBR(dates[dates.length-1]) : null;
 
-      // pega primeiro IPv4 encontrado na janela
       let ip = null;
       const ipM = windowText.match(IPV4_RE);
       if(ipM) ip = ipM[0];
 
-      // heurística de login (palavra antes do 1º IP na janela invertida)
       let login = null;
       const win = searchWindow.slice().reverse().join(" ");
       const ipMatch2 = win.match(IPV4_RE);
@@ -419,25 +437,18 @@
     const de = dateEnd.value ? new Date(dateEnd.value + "T23:59:59") : null;
     return arr.filter(r => r.dateFinal && (!ds || r.dateFinal>=ds) && (!de || r.dateFinal<=de));
   }
-  
+
   function quickRange(days){
-   if (!state.rows.length) {
-    log("Carregue os PDFs antes de usar os atalhos de datas.");
-    return;
+    if (!state.rows.length) { log("Carregue os PDFs antes de usar os atalhos de datas."); return; }
+    const end = state.maxDate ? new Date(state.maxDate) : new Date();
+    end.setHours(0,0,0,0);
+    const start = new Date(end);
+    start.setDate(start.getDate() - (days - 1));
+    dateStart.value = toInputlocal(start);
+    dateEnd.value   = toInputlocal(end);
+    updateView();
+    renderIPs();
   }
-
-  const end = state.maxDate ? new Date(state.maxDate) : new Date();
-  end.setHours(0,0,0,0);
-
-  const start = new Date(end);
-  start.setDate(start.getDate() - (days - 1));
-
-  dateStart.value = toInputlocal(start);
-  dateEnd.value   = toInputlocal(end);
-
-  updateView();
-  renderIPs();
-}
 
   function updateView(){
     const filtered = applyDateFilter(state.rows);
@@ -488,8 +499,7 @@
                       <td class="muted">${r.line.replaceAll("<","&lt;")}</td>`;
       tbody.appendChild(tr);
     }
-    
-    // refresh reports/ip list if visible
+
     if(pageMap.relatorios.section.style.display!=="none"){ renderReports(); }
     if(pageMap.ips.section.style.display!=="none"){ renderIPs(); }
   }
@@ -497,7 +507,6 @@
   // --------- IPs page ---------
   function renderIPs(){
     const filtered = applyDateFilter(state.rows).filter(r=>r.ip);
-    // aggregate
     const map = {};
     for(const r of filtered){
       const ip = r.ip;
@@ -700,7 +709,7 @@
     const filtered = applyDateFilter(state.rows);
     const header = ["login","data_final","motivo","ip","linha_raw"];
     const rows = filtered.map(r => [r.login||"", r.dateFinal.toISOString(), r.reason, r.ip||"", r.line.replaceAll('"','""')]);
-    let csv = header.join(",") + "\\n" + rows.map(r => r.map(v => `"${v}"`).join(",")).join("\\n");
+    let csv = header.join(",") + "\n" + rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");
     const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "ixc_quedas_filtrado.csv"; a.click(); URL.revokeObjectURL(a.href);
   }
@@ -719,25 +728,21 @@
     if(chartDaily) chartDaily.destroy();
   }
 
+  // ===== Toggle de tema (somente dark mode) =====
   const btnDark = document.getElementById("btnDarkMode");
-
-btnDark.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  if(document.body.classList.contains("dark")){
-    btnDark.textContent = "☀️";
-    localStorage.setItem("theme","dark");
-  } else {
-    btnDark.textContent = "🌙";
-    localStorage.setItem("theme","light");
-  }
-});
-
-// aplica preferencia salva
-if(localStorage.getItem("theme")==="dark"){
-  document.body.classList.add("dark");
-  btnDark.textContent = "☀️";
-}
-
+  btnDark.addEventListener("click", () => {
+    const next = document.body.classList.contains("dark") ? "light" : "dark";
+    document.body.classList.toggle("dark", next === "dark");
+    btnDark.textContent = (next === "dark") ? "☀️" : "🌙";
+    localStorage.setItem("theme", next);
+  });
+  // aplica preferência salva
+  (function initTheme(){
+    const saved = localStorage.getItem("theme");
+    const mode = saved === "dark" ? "dark" : "light";
+    document.body.classList.toggle("dark", mode === "dark");
+    btnDark.textContent = (mode === "dark") ? "☀️" : "🌙";
+  })();
 
   elProcess.addEventListener("click", processAll);
   elCSV.addEventListener("click", exportCSV);
