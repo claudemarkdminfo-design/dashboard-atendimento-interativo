@@ -2,786 +2,1094 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>IXC — Dashboard de Quedas (PDF) • v5</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>IXC — Dashboard de Quedas • v2.2</title>
+  
+  <!-- Fontes e Bibliotecas -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>try{pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}catch(e){}</script>
+
   <style>
-    :root{
-      --bg:#f6f7fb; --sidebar:#ffffff; --surface:#ffffff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
-      --brand:#2563eb; --chip:#f3f4f6; --chip-border:#e5e7eb; --good:#16a34a; --warn:#f59e0b; --bad:#dc2626;
-      --shadow: 0 10px 20px rgba(0,0,0,.06); --radius: 14px;
-    }
-    /* Modo escuro */
-    body.dark{
-      --bg:#0b1220; --sidebar:#0f172a; --surface:#0f172a; --text:#e5e7eb; --muted:#9ca3af; --border:#1f2937;
-      --brand:#60a5fa; --chip:#111827; --chip-border:#1f2937;
-      --shadow: 0 10px 20px rgba(0,0,0,.35);
+    :root {
+      --bg: #f3f4f6;
+      --sidebar: #ffffff;
+      --surface: #ffffff;
+      --text: #1f2937;
+      --text-sec: #6b7280;
+      --border: #e5e7eb;
+      --brand: #3b82f6;
+      --brand-hover: #2563eb;
+      --brand-soft: #eff6ff;
+      --good: #10b981;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --font-main: 'Inter', sans-serif;
     }
 
-    *{ box-sizing:border-box }
-    html,body{ height:100% }
-    body{ margin:0; background:var(--bg); color:var(--text); font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto; }
-    .layout{ display:grid; grid-template-columns: 264px 1fr; min-height:100vh; }
+    /* Dark Mode Variables */
+    body.dark {
+      --bg: #0f172a;
+      --sidebar: #1e293b;
+      --surface: #1e293b;
+      --text: #f3f4f6;
+      --text-sec: #94a3b8;
+      --border: #334155;
+      --brand: #60a5fa;
+      --brand-hover: #3b82f6;
+      --brand-soft: #1e3a8a;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; margin: 0; font-family: var(--font-main); background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; }
+
+    /* Layout */
+    .layout { display: flex; height: 100vh; overflow: hidden; }
 
     /* Sidebar */
-    .sidebar{ background:var(--sidebar); border-right:1px solid var(--border); padding:20px; position:sticky; top:0; height:100vh; }
-    .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; margin-bottom:16px; }
-    .brand .badge{ background:var(--brand); color:#fff; padding:4px 8px; display:grid; place-items:center; border-radius:8px; font-weight:800; letter-spacing:.5px }
-    .menu{ display:flex; flex-direction:column; gap:6px; margin-top:10px }
-    .menu a{ display:flex; align-items:center; gap:10px; padding:10px 12px; color:var(--text); text-decoration:none; border-radius:10px }
-    .menu a.active, .menu a:hover{ background:#eef2ff20; color:#c7d2fe }
-    .menu svg{ width:18px; height:18px }
-    .menu .sep{ margin:12px 0 6px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em }
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      z-index: 50;
+      transition: transform 0.3s ease, background 0.3s, border-color 0.3s;
+    }
+    .brand { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 30px; color: var(--text); }
+    .brand-icon { width: 32px; height: 32px; background: var(--brand); border-radius: 8px; display: grid; place-items: center; color: white; }
+    
+    .nav-link {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      color: var(--text-sec); text-decoration: none; border-radius: var(--radius);
+      margin-bottom: 4px; font-weight: 500; transition: all 0.2s;
+      background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; font-family: inherit; font-size: 14px;
+    }
+    .nav-link:hover { background: var(--bg); color: var(--brand); }
+    .nav-link.active { background: var(--brand-soft); color: var(--brand); }
+    .nav-sep { margin: 20px 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-sec); font-weight: 600; padding-left: 12px; }
 
-    /* Content */
-    .content{ padding:24px 28px }
-    .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:12px; flex-wrap:wrap }
-    .title h1{ margin:0; font-size:22px }
-    .title p{ margin:4px 0 0; color:var(--muted); font-size:14px }
-    .actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
-    .btn{ display:inline-flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); padding:9px 12px; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:var(--shadow); color:var(--text) }
-    .btn.primary{ background: var(--brand); color:#fff; border-color:var(--brand) }
-    .btn.danger{ color: var(--bad); border-color:#fecaca }
-    .btn input[type=file]{ display:none }
+    /* Footer do Sidebar para o Botão de Tema */
+    .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
 
-    /* Filters bar */
-    .filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); margin-bottom:14px }
-    .chip{ background:var(--chip); border:1px solid var(--chip-border); padding:6px 10px; border-radius:999px; display:inline-flex; gap:8px; align-items:center; font-size:13px }
-    .chip input{ accent-color:var(--brand) }
-    .date{ display:flex; gap:8px; align-items:center }
-    .date label{ font-size:12px; color:var(--muted) }
-    .date input{ border:1px solid var(--border); padding:7px 8px; border-radius:8px; background:#fff }
-    body.dark .date input{ background:#0b1220; color:var(--text); border-color:var(--border) }
-    .quick{ display:flex; gap:8px; align-items:center }
-    .quick button{ border:1px dashed var(--border); background:var(--surface); color:var(--text); padding:6px 10px; border-radius:999px; cursor:pointer; font-weight:600; font-size:12px }
-    .quick button.active{ border-style:solid; background:var(--brand); color:#fff; }
+    /* Main Content */
+    .main { flex: 1; overflow-y: auto; padding: 24px; position: relative; }
+    
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+    .page-title h1 { margin: 0; font-size: 24px; font-weight: 700; }
+    .page-title p { margin: 4px 0 0; color: var(--text-sec); font-size: 14px; }
 
-    /* Grid / cards */
-    .grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr) }
-    .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow) }
-    .col-3{ grid-column: span 3 } .col-4{ grid-column: span 4 } .col-6{ grid-column: span 6 } .col-8{ grid-column: span 8 } .col-12{ grid-column: span 12 }
-    @media (max-width:1200px){ .col-8{ grid-column: span 12 } .col-6{ grid-column: span 12 } .col-4{ grid-column: span 6 } .col-3{ grid-column: span 6 } }
-    .kpi{ display:flex; justify-content:space-between; align-items:center }
-    .kpi .meta{ color:var(--muted); font-size:12px }
-    .kpi .value{ font-size:26px; font-weight:700 }
-    /* Destaque média/dia */
-    #kpiAvgDay{ font-size:14px; font-weight:700 }
-    #kpiAvgDay .avgVal{ font-size:18px; font-weight:800 }
-    body.dark #kpiAvgDay .avgVal{ color:#93c5fd }
+    /* Actions Bar */
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px;
+      border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      transition: all 0.2s; box-shadow: var(--shadow);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn.primary { background: var(--brand); color: white; border-color: var(--brand); }
+    .btn.primary:hover { background: var(--brand-hover); }
+    .btn.danger { color: var(--bad); border-color: #fca5a5; background: #fef2f2; }
+    body.dark .btn.danger { background: #450a0a; border-color: #7f1d1d; }
 
-    table{ width:100%; border-collapse:collapse; font-size:13px }
-    th,td{ border-bottom:1px solid var(--border); padding:10px 8px; text-align:left }
-    th{ color:#374151; font-weight:600; background:#f9fafb; position:sticky; top:0 }
-    tbody tr:hover{ background:#fafafa }
-    /* Tabela no modo escuro */
-    body.dark table thead th, body.dark th{ background:#0b1220 !important; color:var(--text) !important; border-color:#1f2937 !important; }
-    body.dark td{ color:var(--text) !important; border-color:#1f2937 !important; }
-    body.dark tbody tr:hover{ background:rgba(255,255,255,0.07) !important; }
+    /* Progress Bar */
+    .progress-container {
+      height: 4px; background: var(--border); width: 100%; border-radius: 2px; overflow: hidden; margin-top: 10px; display: none;
+    }
+    .progress-bar { height: 100%; background: var(--brand); width: 0%; transition: width 0.2s; }
 
-    .pill{ padding:3px 8px; border-radius:999px; border:1px solid var(--border); font-weight:600; font-size:12px }
-    .lost{ color:#b91c1c; border-color:#fecaca; background:#fff1f2 } .user{ color:#166534; border-color:#bbf7d0; background:#f0fdf4 }
-    .log{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px; max-height:180px; overflow:auto }
-    .muted{ color:var(--muted) }
+    /* Filters */
+    .filter-bar {
+      background: var(--surface); border: 1px solid var(--border); padding: 16px;
+      border-radius: var(--radius); margin-bottom: 24px; box-shadow: var(--shadow);
+      display: flex; flex-wrap: wrap; gap: 16px; align-items: center; transition: background 0.3s, border-color 0.3s;
+    }
+    .input-group { display: flex; align-items: center; gap: 8px; }
+    .input-group label { font-size: 13px; font-weight: 500; color: var(--text-sec); }
+    input[type="date"], input[type="text"] {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--bg); color: var(--text); font-family: inherit;
+    }
+    .quick-filters button {
+      padding: 6px 12px; font-size: 12px; border-radius: 20px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-sec); cursor: pointer; margin-right: 4px;
+    }
+    .quick-filters button.active { background: var(--brand); color: white; border-color: var(--brand); }
 
-    /* Tabs */
-    .tabs{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap }
-    .tab{ padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); cursor:pointer; font-weight:600; color:var(--text) }
-    .tab.active{ background:#eef2ff20; border-color:#c7d2fe; color:#c7d2fe }
+    /* Range Info Display */
+    .range-info {
+      margin-left: auto; font-size: 13px; color: var(--text-sec);
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+    }
 
-    /* IPs */
-    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
-    .input{ border:1px solid var(--border); padding:8px 10px; border-radius:10px; background:#fff; min-width:240px }
-    body.dark .input{ background:#0b1220; color:var(--text); border-color:var(--border) }
+    /* Dashboard Grid */
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+    .card {
+      background: var(--surface); border-radius: var(--radius); padding: 20px;
+      border: 1px solid var(--border); box-shadow: var(--shadow);
+      display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s;
+    }
+    
+    .col-3 { grid-column: span 3; } .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; } .col-8 { grid-column: span 8; } .col-12 { grid-column: span 12; }
+    
+    @media (max-width: 1024px) { .col-3 { grid-column: span 6; } .col-4 { grid-column: span 6; } .col-8 { grid-column: span 12; } }
+    @media (max-width: 768px) { .col-3, .col-4, .col-6, .col-8 { grid-column: span 12; } }
 
-    /* Botão de tema (fixo no canto inferior esquerdo) */
-    .floating-toggle{
-      position: fixed; bottom:16px; left:16px; z-index:1000;
-      width:44px; height:44px; display:flex; align-items:center; justify-content:center;
-      border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text); box-shadow:var(--shadow); font-size:18px; cursor:pointer;
+    /* KPI Styles */
+    .kpi-title { color: var(--text-sec); font-size: 13px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+    .kpi-value { font-size: 28px; font-weight: 800; color: var(--text); }
+    .kpi-sub { font-size: 13px; color: var(--text-sec); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    .trend-up { color: var(--good); } .trend-down { color: var(--bad); }
+
+    /* Chips/Tags */
+    .chips-container { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
+      font-size: 12px; cursor: pointer; user-select: none; transition: all 0.2s;
+    }
+    .chip:hover { border-color: var(--brand); }
+    .chip.active { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); font-weight: 600; }
+    .chip input { display: none; }
+
+    /* Tables */
+    .table-container { overflow-x: auto; max-height: 600px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 12px 16px; background: var(--bg); color: var(--text-sec); font-weight: 600; position: sticky; top: 0; z-index: 10; }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text); }
+    tr:hover td { background: var(--bg); }
+    
+    .status-pill { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .status-lost { background: #fee2e2; color: #b91c1c; }
+    .status-user { background: #dcfce7; color: #15803d; }
+    .status-admin { background: #e0f2fe; color: #0369a1; }
+    body.dark .status-lost { background: #7f1d1d; color: #fca5a5; }
+    body.dark .status-user { background: #14532d; color: #86efac; }
+    body.dark .status-admin { background: #0c4a6e; color: #7dd3fc; }
+
+    /* Drag & Drop Overlay */
+    #dropOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(59, 130, 246, 0.9); z-index: 1000;
+      display: none; justify-content: center; align-items: center; flex-direction: column;
+      color: white; font-weight: 700; font-size: 24px; backdrop-filter: blur(4px);
+    }
+    #dropOverlay.active { display: flex; }
+
+    /* Mobile Menu */
+    .mobile-toggle { display: none; background: none; border: none; font-size: 24px; color: var(--text); cursor: pointer; padding: 0; margin-right: 10px; }
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: -260px; height: 100%; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
+      .sidebar.open { transform: translateX(260px); }
+      .mobile-toggle { display: block; }
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .quick-filters { overflow-x: auto; white-space: nowrap; padding-bottom: 4px; }
+      .range-info { margin-left: 0; margin-top: 10px; }
+    }
+
+    /* Tabs for Reports */
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+    .tab-btn {
+      padding: 10px 16px; background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--text-sec); font-weight: 600; cursor: pointer;
+    }
+    .tab-btn.active { color: var(--brand); border-bottom-color: var(--brand); }
+
+    @media print {
+      .sidebar, .actions, .filter-bar, .theme-toggle { display: none !important; }
+      .main { padding: 0; overflow: visible; }
+      .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+      body { background: white; color: black; }
     }
   </style>
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="brand"><div class="badge">IXC</div> <span>IXC Dashboard</span></div>
-      <nav class="menu" id="nav">
-        <a class="active" data-target="dashboard">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor" stroke-width="1.5"/></svg>
-          Dashboard
-        </a>
-        <a data-target="tabela">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M3 5h18M3 12h18M3 19h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          Tabela
-        </a>
-        <a data-target="ips">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          IPs
-        </a>
-        <a data-target="relatorios">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14v16l-7-3-7 3V4Z" stroke="currentColor" stroke-width="1.5"/></svg>
-          Relatórios Inteligentes
-        </a>
-        <div class="sep">Sistema</div>
-        <a data-target="log">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v14H6l-2 2V4Z" stroke="currentColor" stroke-width="1.5"/></svg>
-          Log
-        </a>
-        <button id="btnDarkMode" class="floating-toggle" title="Alternar tema">🌙</button>
-      </nav>
-    </aside>
 
-    <main class="content">
-      <div class="topbar">
-        <div class="title">
-          <h1 id="pageTitle">Dashboard</h1>
-          <p id="pageSubtitle">Visualize quedas por motivo, série diária e resumo geral. Carregue os PDFs do “Relatório de Conexões Detalhado”.</p>
-        </div>
-        <div class="actions">
-          <label class="btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Selecionar PDFs
-            <input type="file" id="fileInput" accept=".pdf,application/pdf" multiple>
-          </label>
-          <button class="btn primary" id="btnProcess">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M20 8A8 8 0 0 0 4 8m16 8a8 8 0 0 1-16 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            Processar
-          </button>
-          <button class="btn" id="btnCSV">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M8 7h8M8 11h8M8 15h8M4 7h.01M4 11h.01M4 15h.01M20 7h.01M20 11h.01M20 15h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            Exportar CSV
-          </button>
-          <button class="btn danger" id="btnClearAll">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            Limpar dados
-          </button>
+<!-- Drag & Drop Overlay -->
+<div id="dropOverlay">
+  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+  <div style="margin-top:16px">Solte os arquivos PDF aqui</div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      IXC Analytics
+    </div>
+    
+    <nav>
+      <button class="nav-link active" data-page="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Dashboard
+      </button>
+      <button class="nav-link" data-page="tabela">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        Tabela Detalhada
+      </button>
+      <button class="nav-link" data-page="ips">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        Análise de IPs
+      </button>
+      <button class="nav-link" data-page="relatorios">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Relatórios AI
+      </button>
+      
+      <div class="nav-sep">Sistema</div>
+      <button class="nav-link" data-page="log">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+        Log de Processamento
+      </button>
+    </nav>
+
+    <!-- Botão de Tema no Rodapé do Sidebar -->
+    <div class="sidebar-footer">
+      <button class="nav-link" id="btnTheme">
+        <svg id="iconTheme" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <span id="txtTheme">Modo Escuro</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="header">
+      <div style="display:flex; align-items:center;">
+        <button class="mobile-toggle" id="btnMenu">☰</button>
+        <div class="page-title">
+          <h1 id="pageTitle">Dashboard Geral</h1>
+          <p id="pageSubtitle">Visão consolidada das desconexões importadas.</p>
         </div>
       </div>
 
-      <!-- Global Filters -->
-      <div class="filters">
-        <div class="date">
-          <label>De</label>
-          <input type="date" id="dateStart">
-          <label>até</label>
-          <input type="date" id="dateEnd">
-        </div>
-        <div class="quick">
-          <span class="hint">Atalhos:</span>
-          <button type="button" data-q="7">Últimos 7d</button>
-          <button type="button" data-q="15">Últimos 15d</button>
-          <button type="button" data-q="30">Últimos 30d</button>
-          <button type="button" id="btnClearDates">Limpar</button>
-        </div>
+      <div class="actions">
+        <input type="file" id="fileInput" accept=".pdf" multiple style="display:none">
+        <button class="btn" onclick="document.getElementById('fileInput').click()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Carregar PDF
+        </button>
+        <button class="btn primary" id="btnExport">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          CSV
+        </button>
+        <button class="btn danger" id="btnClear">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Filtros Globais -->
+    <div class="filter-bar">
+      <div class="input-group">
+        <label>Filtrar Visualização:</label>
+        <input type="date" id="dateStart">
+        <span style="color:var(--text-sec)">a</span>
+        <input type="date" id="dateEnd">
+      </div>
+      
+      <div class="quick-filters">
+        <button data-days="7">7d</button>
+        <button data-days="15">15d</button>
+        <button data-days="30">30d</button>
+        <button id="btnResetDate">Todos</button>
       </div>
 
-      <!-- Pages -->
-      <section id="page-dashboard">
-        <div class="grid">
-          <div class="card col-3"><div class="kpi"><div><div class="meta">Arquivos</div><div class="value" id="kpiFiles">0</div></div><div class="meta" id="kpiPages">0 páginas</div></div></div>
-          <div class="card col-3"><div class="kpi"><div><div class="meta">Total de Registros</div><div class="value" id="kpiRows">0</div></div><div class="meta">todas as razões</div></div></div>
-          <div class="card col-3"><div class="kpi"><div><div class="meta">Quedas (seleção)</div><div class="value" id="kpiDrops">0</div></div><div class="meta" id="kpiAvgDay">média/dia: <span class="avgVal">0</span></div></div></div>
-          <div class="card col-3"><div class="kpi"><div><div class="meta">Período coberto</div><div class="value" id="kpiRange">—</div></div><div class="meta" id="kpiDistinctDays">0 dias</div></div></div>
+      <!-- Novo indicador de Período do Arquivo (Substitui a busca) -->
+      <div class="range-info">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Período nos arquivos:
+        <strong id="lblFileRange" style="color:var(--text)">—</strong>
+      </div>
+    </div>
 
-          <div class="card col-12">
-            <div class="chips" id="reasonsBox"></div>
-          </div>
+    <!-- Conteúdo das Páginas -->
+    <div id="contentArea">
+      <!-- Injetado via JS -->
+    </div>
 
-          <div class="card col-8"><canvas id="chartByReason" height="130"></canvas></div>
-          <div class="card col-4"><canvas id="chartPie" height="130"></canvas></div>
-          <div class="card col-12"><canvas id="chartDaily" height="170"></canvas></div>
-        </div>
-      </section>
+  </main>
+</div>
 
-      <section id="page-tabela" style="display:none">
-        <div class="card">
-          <div class="muted" style="margin-bottom:8px;">Prévia das últimas 300 linhas (após filtros)</div>
-          <div style="max-height:500px; overflow:auto;">
-            <table id="tbl">
-              <thead><tr><th>Login</th><th>Conexão Final</th><th>Motivo</th><th>IP</th><th>Texto</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+<!-- TEMPLATES -->
 
-      <section id="page-ips" style="display:none">
-        <div class="card">
-          <div class="toolbar">
-            <input id="ipSearch" class="input" placeholder="Buscar IP (ex.: 177.23.10.5)">
-            <button class="btn" id="btnIpClear">Limpar busca</button>
-          </div>
-          <div class="muted" style="margin-bottom:8px;">Lista de IPs dentro do período selecionado (De/Até). Mostra ocorrências, primeiro/último visto.</div>
-          <div style="max-height:520px; overflow:auto;">
-            <table id="tblIps">
-              <thead><tr><th>IP</th><th>Ocorrências</th><th>Primeiro</th><th>Último</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+<!-- 1. DASHBOARD -->
+<template id="tpl-dashboard">
+  <div class="grid">
+    <!-- KPIs -->
+    <div class="card col-3">
+      <div class="kpi-title">Total de Quedas</div>
+      <div class="kpi-value" id="kpiTotal">0</div>
+      <div class="kpi-sub">registros processados</div>
+    </div>
+    <div class="card col-3">
+      <div class="kpi-title">Média Diária</div>
+      <div class="kpi-value" id="kpiAvg">0</div>
+      <div class="kpi-sub" id="kpiAvgLabel">nos dias selecionados</div>
+    </div>
+    <div class="card col-3">
+      <div class="kpi-title">IPs Únicos</div>
+      <div class="kpi-value" id="kpiUniqueIps">0</div>
+      <div class="kpi-sub">afetados no período</div>
+    </div>
+    <div class="card col-3">
+      <div class="kpi-title">Arquivos</div>
+      <div class="kpi-value" id="kpiFiles">0</div>
+      <div class="kpi-sub" id="kpiPages">0 páginas lidas</div>
+    </div>
 
-      <section id="page-relatorios" style="display:none">
-        <div class="card">
-          <div class="tabs">
-            <button class="tab active" data-rpt="r15">Últimos 15 dias</button>
-            <button class="tab" data-rpt="r15comp">Comparativo (15d atuais vs 15d anteriores)</button>
-            <button class="tab" data-rpt="pic">Picos & Anomalias</button>
-          </div>
-          <div id="reportBody"></div>
-        </div>
-      </section>
+    <!-- Seletor de Motivos -->
+    <div class="card col-12">
+      <div style="font-weight:600; margin-bottom:10px;">Filtrar Motivos</div>
+      <div class="chips-container" id="reasonsContainer"></div>
+    </div>
 
-      <section id="page-log" style="display:none">
-        <div class="card">
-          <div class="muted" style="margin-bottom:8px;">Log</div>
-          <div class="log" id="logBox">Pronto.</div>
-        </div>
-      </section>
-    </main>
+    <!-- Gráficos -->
+    <div class="card col-8" style="min-height: 350px;">
+      <canvas id="chartHistory"></canvas>
+    </div>
+    <div class="card col-4" style="min-height: 350px;">
+      <canvas id="chartReason"></canvas>
+    </div>
   </div>
+</template>
+
+<!-- 2. TABELA -->
+<template id="tpl-tabela">
+  <div class="card col-12">
+    <div class="table-container">
+      <table id="mainTable">
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Login</th>
+            <th>Motivo</th>
+            <th>IP</th>
+            <th>Detalhe (Raw)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px; text-align:center; color:var(--text-sec); font-size:12px;">Mostrando até 1000 registros mais recentes para performance. Use CSV para ver tudo.</div>
+  </div>
+</template>
+
+<!-- 3. IPs -->
+<template id="tpl-ips">
+  <div class="grid">
+    <div class="card col-12">
+      <div class="table-container">
+        <table id="ipTable">
+          <thead>
+            <tr>
+              <th>Endereço IP</th>
+              <th>Total de Quedas</th>
+              <th>Primeira Ocorrência</th>
+              <th>Última Ocorrência</th>
+              <th>Motivo Principal</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- 4. RELATORIOS -->
+<template id="tpl-relatorios">
+  <div class="card col-12">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="app.renderReport('overview')">Resumo 15 Dias</button>
+      <button class="tab-btn" onclick="app.renderReport('picos')">Análise de Picos</button>
+    </div>
+    <div id="reportContent" style="padding: 10px 0;"></div>
+  </div>
+</template>
+
+<!-- 5. LOG -->
+<template id="tpl-log">
+  <div class="card col-12">
+    <div style="background: var(--bg); padding: 16px; border-radius: 8px; font-family: monospace; font-size: 13px; height: 400px; overflow-y: auto;" id="logBox">
+      Aguardando processamento...
+    </div>
+  </div>
+</template>
 
 <script>
-(function(){
-  // --------- Helpers UI & Nav ---------
-  const pageMap = {
-    dashboard: {section: document.getElementById("page-dashboard"), title:"Dashboard", subtitle:"Visualize quedas por motivo, série diária e resumo geral."},
-    tabela: {section: document.getElementById("page-tabela"), title:"Tabela", subtitle:"Prévia de registros após filtros."},
-    ips: {section: document.getElementById("page-ips"), title:"IPs", subtitle:"Filtre por data e busque IPs específicos."},
-    relatorios: {section: document.getElementById("page-relatorios"), title:"Relatórios Inteligentes", subtitle:"Insights automáticos com base nos últimos 15 dias."},
-    log: {section: document.getElementById("page-log"), title:"Log", subtitle:"Mensagens do processamento de PDFs."}
-  };
-  const nav = document.getElementById("nav");
-  const pageTitle = document.getElementById("pageTitle");
-  const pageSubtitle = document.getElementById("pageSubtitle");
-  nav.querySelectorAll("a").forEach(a => {
-    a.addEventListener("click", () => {
-      nav.querySelectorAll("a").forEach(x => x.classList.remove("active"));
-      a.classList.add("active");
-      const target = a.getAttribute("data-target");
-      for(const [k,v] of Object.entries(pageMap)){ v.section.style.display = (k===target) ? "" : "none"; }
-      pageTitle.textContent = pageMap[target].title;
-      pageSubtitle.textContent = pageMap[target].subtitle;
-      if(target==="ips"){ renderIPs(); }
-    });
-  });
-
-  function log(msg){ logBox.textContent += "\\n" + msg; logBox.scrollTop = logBox.scrollHeight; }
-  const logBox = document.getElementById("logBox");
-
-  // --------- Parsing setup ---------
-  const KNOWN_REASONS = [
-    "Lost-Carrier","User-Request","Admin-Reset","Session-Timeout","Admin-Reject",
-    "NAS-Error","LCP-Timeout","Port-Error","Chap-Error","Lost-Service","Radius-Timeout","Idle-Timeout"
-  ];
-  const DEFAULT_SELECTED = new Set(["Lost-Carrier","User-Request"]);
-
+/**
+ * IXC Analytics Dashboard Logic
+ * v2.2 - Auto Dark Mode & UI Fixes
+ */
+const app = (function() {
+  // State
   const state = {
-    files:[], pages:0, rows:[],
-    minDate:null, maxDate:null,
-    reasonsSelected:new Set(DEFAULT_SELECTED),
-    hiddenReasons:new Set()
+    files: [],
+    rawData: [],     // { date, login, reason, ip, rawLine }
+    filteredData: [],
+    reasonsStats: {},
+    dateRange: { min: null, max: null },
+    filters: {
+      start: null,
+      end: null,
+      excludedReasons: new Set()
+    },
+    ui: {
+      activePage: 'dashboard',
+      theme: 'light' // Initial default, overwritten in init
+    }
   };
 
-  const elInput = document.getElementById("fileInput");
-  const elProcess = document.getElementById("btnProcess");
-  const elCSV = document.getElementById("btnCSV");
-  const elClearAll = document.getElementById("btnClearAll");
-  const elReasonsBox = document.getElementById("reasonsBox");
-  const dateStart = document.getElementById("dateStart");
-  const dateEnd = document.getElementById("dateEnd");
-  const btnClearDates = document.getElementById("btnClearDates");
-  const quickBtns = document.querySelectorAll(".quick button[data-q]");
-  quickBtns.forEach(b => b.addEventListener("click", () => { quickRange(+b.getAttribute("data-q")); }));
+  // Config
+  const CONFIG = {
+    reasons: {
+      "Lost-Carrier": "loss", "User-Request": "user", "Admin-Reset": "admin",
+      "Session-Timeout": "warn", "Nas-Error": "bad", "Idle-Timeout": "warn"
+    }
+  };
 
-  const kpiFiles = document.getElementById("kpiFiles");
-  const kpiPages = document.getElementById("kpiPages");
-  const kpiRows = document.getElementById("kpiRows");
-  const kpiDrops = document.getElementById("kpiDrops");
-  const kpiAvgDay = document.getElementById("kpiAvgDay");
-  const kpiRange = document.getElementById("kpiRange");
-  const kpiDistinctDays = document.getElementById("kpiDistinctDays");
-  const tblBody = document.querySelector("#tbl tbody");
+  // DOM Elements cache
+  const els = {};
 
-  const ipSearch = document.getElementById("ipSearch");
-  const btnIpClear = document.getElementById("btnIpClear");
-  const tblIpsBody = document.querySelector("#tblIps tbody");
+  function init() {
+    // Cache Elements
+    ['fileInput', 'btnExport', 'btnClear', 'btnResetDate', 'dateStart', 'dateEnd', 
+     'contentArea', 'pageTitle', 'pageSubtitle', 'progressContainer', 
+     'progressBar', 'logBox', 'sidebar', 'btnMenu', 'btnTheme', 'lblFileRange', 
+     'iconTheme', 'txtTheme'].forEach(id => els[id] = document.getElementById(id));
 
-  dateStart.addEventListener("change", ()=>{ setQuickActive(null); state.hiddenReasons.clear(); updateView(); renderIPs(); });
-  dateEnd.addEventListener("change", ()=>{ setQuickActive(null); state.hiddenReasons.clear(); updateView(); renderIPs(); });
-  btnClearDates.addEventListener("click", () => { dateStart.value=""; dateEnd.value=""; setQuickActive(null); state.hiddenReasons.clear(); updateView(); renderIPs(); });
-  ipSearch.addEventListener("input", renderIPs);
-  btnIpClear.addEventListener("click", ()=>{ ipSearch.value=""; renderIPs(); });
+    // Event Listeners
+    els.fileInput.addEventListener('change', handleFileSelect);
+    els.btnClear.addEventListener('click', clearAll);
+    els.btnExport.addEventListener('click', exportCSV);
+    els.btnResetDate.addEventListener('click', () => setQuickDate(null));
+    els.dateStart.addEventListener('change', updateFilters);
+    els.dateEnd.addEventListener('change', updateFilters);
+    els.btnMenu.addEventListener('click', () => els.sidebar.classList.toggle('open'));
+    els.btnTheme.addEventListener('click', toggleTheme);
 
-  elClearAll.addEventListener("click", clearAll);
+    document.querySelectorAll('.quick-filters button[data-days]').forEach(btn => {
+      btn.addEventListener('click', (e) => setQuickDate(parseInt(e.target.dataset.days)));
+    });
 
-  function setQuickActive(qStr){
-    quickBtns.forEach(b => b.classList.toggle("active", qStr && b.getAttribute("data-q")===qStr));
-  }
-
-  function buildReasons(){
-    elReasonsBox.innerHTML = "";
-    KNOWN_REASONS.forEach(r => {
-      const id = "reason_" + r.replace(/[^a-z0-9]/gi,"_");
-      const label = document.createElement("label");
-      label.className = "chip";
-      label.innerHTML = `<input type="checkbox" id="${id}" ${state.reasonsSelected.has(r) ? "checked":""} /><span>${r}</span>`;
-      label.querySelector("input").addEventListener("change", e => {
-        if(e.target.checked) state.reasonsSelected.add(r); else state.reasonsSelected.delete(r);
-        state.hiddenReasons.clear(); // reset da legenda
-        updateView();
+    // Navigation (using buttons instead of A tags for cleaner app-like feel)
+    document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo(e.currentTarget.dataset.page);
+        if(window.innerWidth <= 768) els.sidebar.classList.remove('open');
       });
-      elReasonsBox.appendChild(label);
-    });
-  }
-  buildReasons();
-
-  elInput.addEventListener("change", () => { state.files = Array.from(elInput.files || []).filter(f => f.name?.toLowerCase().endsWith(".pdf")); processAll(); });
-
-  const DATE_RE = /\b(\d{2}\/\d{2}\/\d{4})\s+(\d{2}:\d{2}:\d{2})\b/g;
-  const IPV4_RE = /(?:\d{1,3}\.){3}\d{1,3}/;
-  const REASONS_RE = new RegExp("\\b(" + KNOWN_REASONS.map(r=>r.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")).join("|") + ")\\b");
-
-  function parseDateBR(str){
-    const m = /(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/.exec(str);
-    if(!m) return null;
-    return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]);
-  }
-  function formatDateBR(d){
-    const pad = n => String(n).padStart(2,"0");
-    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  }
-  function toInputlocal(d){ return d.toISOString().slice(0,10); }
-
-  function itemsToTextLines(items){
-    const rows = {};
-    items.forEach(it => {
-      const y = Math.round(it.transform[5]);
-      rows[y] = rows[y] || [];
-      rows[y].push(it.str);
-    });
-    const ys = Object.keys(rows).map(Number).sort((a,b)=>b-a);
-    return ys.map(y => rows[y].join(" ")).join("\n");
-  }
-
-  function extractRows(allText){
-    const lines = allText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    const out = [];
-    for(let i=0;i<lines.length;i++){
-      const line = lines[i];
-      const rMatch = line.match(REASONS_RE);
-      if(!rMatch) continue;
-      const reason = rMatch[1];
-
-      let searchWindow = [line];
-      for(let k=1;k<=4;k++){ if(lines[i-k]) searchWindow.push(lines[i-k]); }
-      const windowText = searchWindow.join(" | ");
-
-      const dates = Array.from(windowText.matchAll(DATE_RE)).map(m=>m[0]);
-      const dateFinal = dates.length ? parseDateBR(dates[dates.length-1]) : null;
-
-      let ip = null;
-      const ipM = windowText.match(IPV4_RE);
-      if(ipM) ip = ipM[0];
-
-      let login = null;
-      const win = searchWindow.slice().reverse().join(" ");
-      const ipMatch2 = win.match(IPV4_RE);
-      if(ipMatch2){
-        const before = win.slice(0, ipMatch2.index).trim();
-        const w = before.split(/\s+/);
-        if(w.length){
-          const candidate = w[w.length-1];
-          if(candidate && !/^\d/.test(candidate) && candidate.length>=3){ login = candidate; }
-        }
-      }
-      out.push({reason, dateFinal, login, ip, line});
-    }
-    const seen = new Set(), uniq = [];
-    for(const r of out){
-      const key = `${r.reason}|${r.dateFinal ? r.dateFinal.getTime():"n"}|${r.ip||"n"}|${r.line.slice(0,80)}`;
-      if(!seen.has(key)){ seen.add(key); uniq.push(r); }
-    }
-    return uniq;
-  }
-
-  // ====== CHARTS ======
-  let chartByReason=null, chartPie=null, chartDaily=null;
-
-  function legendClickSync(evt, legendItem, legend){
-    const reason = legendItem.text;
-    if(state.hiddenReasons.has(reason)) state.hiddenReasons.delete(reason);
-    else state.hiddenReasons.add(reason);
-
-    const ci = legend.chart;
-    if(ci.config.type === 'doughnut'){
-      ci.toggleDataVisibility(legendItem.index);
-      ci.update();
-    } else if (ci.config.type === 'line'){
-      const dsIndex = legendItem.datasetIndex;
-      const meta = ci.getDatasetMeta(dsIndex);
-      meta.hidden = meta.hidden === null ? !ci.data.datasets[dsIndex].hidden : null;
-      ci.update();
-    }
-    rebuildChartsOnly();
-  }
-
-  function buildCharts(aggAllReasons, seriesDailyAll, labelsOrderAll){
-    const ctx1 = document.getElementById("chartByReason").getContext("2d");
-    const ctx2 = document.getElementById("chartPie").getContext("2d");
-    const ctx3 = document.getElementById("chartDaily").getContext("2d");
-
-    if(chartByReason) chartByReason.destroy();
-    if(chartPie) chartPie.destroy();
-    if(chartDaily) chartDaily.destroy();
-
-    const visibleReasons = labelsOrderAll.filter(r => !state.hiddenReasons.has(r));
-
-    chartByReason = new Chart(ctx1,{
-      type:"bar",
-      data:{ labels:visibleReasons, datasets:[{label:"Ocorrências", data:visibleReasons.map(r => aggAllReasons[r]||0)}] },
-      options:{ plugins:{ legend:{ display:false }}, animation:false }
     });
 
-    const pieLabels = labelsOrderAll;
-    chartPie = new Chart(ctx2,{
-      type:"doughnut",
-      data:{ labels: pieLabels, datasets:[{ data: pieLabels.map(r => aggAllReasons[r]||0) }] },
-      options:{ plugins:{ legend:{ onClick: legendClickSync }}, animation:false }
+    // Drag & Drop
+    const dropZone = document.body;
+    const overlay = document.getElementById('dropOverlay');
+    
+    ['dragenter', 'dragover'].forEach(evt => {
+      dropZone.addEventListener(evt, (e) => { e.preventDefault(); overlay.classList.add('active'); });
     });
-    pieLabels.forEach((r, i) => { if(state.hiddenReasons.has(r)) chartPie.toggleDataVisibility(i); });
-    chartPie.update();
-
-    const lineLabels = seriesDailyAll.labels;
-    const lineDatasets = seriesDailyAll.datasets.filter(ds => !state.hiddenReasons.has(ds.label));
-    chartDaily = new Chart(ctx3,{
-      type:"line",
-      data:{ labels: lineLabels, datasets: lineDatasets },
-      options:{ interaction:{ mode:"index", intersect:false }, plugins:{ legend:{ onClick: legendClickSync }}, animation:false }
+    ['dragleave', 'drop'].forEach(evt => {
+      dropZone.addEventListener(evt, (e) => { e.preventDefault(); overlay.classList.remove('active'); });
     });
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if(files.length) handleFiles(files);
+    });
+
+    // --- Theme Initialization Logic ---
+    initTheme();
+
+    // Initial Render
+    navigateTo('dashboard');
   }
 
-  function applyDateFilter(arr){
-    const ds = dateStart.value ? new Date(dateStart.value + "T00:00:00") : null;
-    const de = dateEnd.value ? new Date(dateEnd.value + "T23:59:59") : null;
-    return arr.filter(r => r.dateFinal && (!ds || r.dateFinal>=ds) && (!de || r.dateFinal<=de));
-  }
-
-  function quickRange(days){
-    if (!state.rows.length) { log("Carregue os PDFs antes de usar os atalhos de datas."); return; }
-    const end = state.maxDate ? new Date(state.maxDate) : new Date();
-    end.setHours(0,0,0,0);
-    const start = new Date(end);
-    start.setDate(start.getDate() - (days - 1));
-    dateStart.value = toInputlocal(start);
-    dateEnd.value   = toInputlocal(end);
-    setQuickActive(String(days));
-    state.hiddenReasons.clear();
-    updateView();
-    renderIPs();
-  }
-
-  function computeAggsForCharts(filtered){
-    const selected = state.reasonsSelected;
-    const rowsSel = filtered.filter(r => selected.has(r.reason));
-    const aggByReason = {};
-    for(const r of rowsSel){ aggByReason[r.reason] = (aggByReason[r.reason]||0)+1; }
-    const labelsOrder = Object.keys(aggByReason).sort((a,b)=>(aggByReason[b]-aggByReason[a]) || a.localeCompare(b));
-    const buckets = {};
-    for(const r of rowsSel){
-      const d = r.dateFinal.toISOString().slice(0,10);
-      buckets[d] = buckets[d] || {};
-      buckets[d][r.reason] = (buckets[d][r.reason]||0)+1;
-    }
-    const dayLabels = Object.keys(buckets).sort();
-    const datasets = labelsOrder.map(reason => ({
-      label: reason,
-      data: dayLabels.map(day => buckets[day]?.[reason] || 0),
-      tension: 0.3
-    }));
-    return { aggByReason, seriesDaily:{labels:dayLabels, datasets}, labelsOrder };
-  }
-
-  function rebuildChartsOnly(){
-    const filtered = applyDateFilter(state.rows);
-    const { aggByReason, seriesDaily, labelsOrder } = computeAggsForCharts(filtered);
-    buildCharts(aggByReason, seriesDaily, labelsOrder);
-  }
-
-  function updateView(){
-    const filtered = applyDateFilter(state.rows);
-    kpiRows.textContent = filtered.length.toLocaleString("pt-BR");
-
-    const selected = state.reasonsSelected;
-    const filteredSel = filtered.filter(r => selected.has(r.reason));
-    const drops = filteredSel.length;
-    kpiDrops.textContent = drops.toLocaleString("pt-BR");
-
-    if(state.minDate && state.maxDate){
-      kpiRange.textContent = `${formatDateBR(state.minDate)} — ${formatDateBR(state.maxDate)}`;
-      const dayKeys = new Set(filteredSel.map(r => r.dateFinal.toISOString().slice(0,10)));
-      const avg = dayKeys.size ? drops / dayKeys.size : 0;
-      kpiDistinctDays.textContent = `${dayKeys.size} dia${dayKeys.size===1?"":"s"}`;
-      kpiAvgDay.innerHTML = `média/dia: <span class="avgVal">${avg.toFixed(2)}</span>`;
+  // --- Theme Logic ---
+  
+  function initTheme() {
+    // 1. Check LocalStorage
+    const storedTheme = localStorage.getItem('ixc_theme');
+    
+    if (storedTheme) {
+      applyTheme(storedTheme);
     } else {
-      kpiRange.textContent = "—"; kpiDistinctDays.textContent = "0 dias"; kpiAvgDay.innerHTML = `média/dia: <span class="avgVal">0</span>`;
+      // 2. Check System Preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(prefersDark ? 'dark' : 'light');
     }
 
-    const { aggByReason, seriesDaily, labelsOrder } = computeAggsForCharts(filtered);
-    buildCharts(aggByReason, seriesDaily, labelsOrder);
-
-    const last300 = filtered.slice(-300);
-    const tbody = tblBody;
-    tbody.innerHTML = "";
-    for(const r of last300){
-      const pill = r.reason==="Lost-Carrier"?"lost":(r.reason==="User-Request"?"user":"");
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${r.login||"<span class='muted'>—</span>"}</td>
-                      <td>${r.dateFinal?formatDateBR(r.dateFinal):"<span class='muted'>—</span>"}</td>
-                      <td><span class="pill ${pill}">${r.reason}</span></td>
-                      <td>${r.ip||"<span class='muted'>—</span>"}</td>
-                      <td class="muted">${r.line.replaceAll("<","&lt;")}</td>`;
-      tbody.appendChild(tr);
-    }
-
-    if(pageMap.relatorios.section.style.display!=="none"){ renderReports(); }
-    if(pageMap.ips.section.style.display!=="none"){ renderIPs(); }
+    // Listen for system changes only if user hasn't overridden
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+      if (!localStorage.getItem('ixc_theme')) {
+        applyTheme(event.matches ? 'dark' : 'light');
+      }
+    });
   }
 
-  // --------- IPs page ---------
-  function renderIPs(){
-    const filtered = applyDateFilter(state.rows).filter(r=>r.ip);
-    const map = {};
-    for(const r of filtered){
-      const ip = r.ip;
-      const t = r.dateFinal.getTime();
-      if(!map[ip]) map[ip] = { ip, count:0, first:t, last:t };
-      const m = map[ip]; m.count += 1; if(t<m.first) m.first=t; if(t>m.last) m.last=t;
-    }
-    let list = Object.values(map);
-    const q = ipSearch.value.trim();
-    if(q) list = list.filter(x => x.ip.includes(q));
-    list.sort((a,b)=> b.count - a.count || a.ip.localeCompare(b.ip));
+  function toggleTheme() {
+    const isDark = document.body.classList.contains('dark');
+    const newTheme = isDark ? 'light' : 'dark';
+    applyTheme(newTheme);
+    // Persist user choice
+    localStorage.setItem('ixc_theme', newTheme);
+  }
 
-    const tbody = tblIpsBody;
-    tbody.innerHTML = "";
-    const fmt = (t)=>{ const d = new Date(t); const pad = n=> String(n).padStart(2,"0"); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
-    for(const row of list){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${row.ip}</td><td>${row.count}</td><td>${fmt(row.first)}</td><td>${fmt[row.last]}</td>`;
-      tbody.appendChild(tr);
-    }
-    if(!list.length){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="4" class="muted">Nenhum IP no período atual.</td>`;
-      tbody.appendChild(tr);
+  function applyTheme(theme) {
+    state.ui.theme = theme;
+    
+    if (theme === 'dark') {
+      document.body.classList.add('dark');
+      // Update Button UI
+      els.txtTheme.innerText = 'Modo Claro';
+      els.iconTheme.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+    } else {
+      document.body.classList.remove('dark');
+      // Update Button UI
+      els.txtTheme.innerText = 'Modo Escuro';
+      els.iconTheme.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
     }
   }
 
-  // --------- Intelligent Reports (igual) ---------
-  const reportBody = document.getElementById("reportBody");
-  const tabs = document.querySelectorAll(".tab");
-  tabs.forEach(t => t.addEventListener("click", () => { tabs.forEach(x=>x.classList.remove("active")); t.classList.add("active"); renderReports(); }));
+  // --- Core Processing Logic ---
 
-  function renderReports(){
-    const active = document.querySelector(".tab.active").getAttribute("data-rpt");
-    reportBody.innerHTML = "";
-    if(!state.rows.length){ reportBody.innerHTML = "<div class='muted'>Nenhum dado carregado ainda.</div>"; return; }
-    const rows = state.rows.filter(r=>r.dateFinal).sort((a,b)=>a.dateFinal-b.dateFinal);
-    const maxD = rows[rows.length-1].dateFinal;
-    const start15 = new Date(maxD); start15.setDate(start15.getDate()-14);
-    const prevStart = new Date(start15); prevStart.setDate(prevStart.getDate()-15);
-    const prevEnd = new Date(start15); prevEnd.setDate(prevEnd.getDate()-1);
-    const cur = rows.filter(r => r.dateFinal>=start15 && r.dateFinal<=maxD);
-    const prev = rows.filter(r => r.dateFinal>=prevStart && r.dateFinal<=prevEnd);
+  async function handleFileSelect(e) {
+    handleFiles(e.target.files);
+  }
 
-    function agg(arr){
-      const byReason={}, byDay={}, byLogin={};
-      arr.forEach(r => { byReason[r.reason]=(byReason[r.reason]||0)+1; const k=r.dateFinal.toISOString().slice(0,10); byDay[k]=(byDay[k]||0)+1; if(r.login) byLogin[r.login]=(byLogin[r.login]||0)+1; });
-      const total = arr.length; const days = Object.keys(byDay).length || 1; const avg = total/days;
-      const topReason = Object.entries(byReason).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
-      const topLogin = Object.entries(byLogin).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
-      const peakDay = Object.entries(byDay).sort((a,b)=>b[1]-a[1])[0] || ["—",0];
-      return {total, avg, topReason, topLogin, peakDay, byReason, byDay};
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+    if (!files.length) return alert('Selecione arquivos PDF válidos.');
+
+    els.progressContainer.style.display = 'block';
+    updateProgress(0);
+    log(`Iniciando processamento de ${files.length} arquivos...`);
+
+    let totalPages = 0;
+    // Pre-scan to get total pages for accurate progress bar
+    for (const file of files) {
+       try {
+         const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
+         totalPages += pdf.numPages;
+       } catch(e) { console.error(e); }
     }
-    const curA = agg(cur);
-    const prevA = agg(prev);
 
-    if(active==="r15"){
-      const el = document.createElement("div");
-      el.className="report-grid";
-      el.innerHTML = `
-        <div class="card col-3"><div class="kpi"><div><div class="meta">Total (15d)</div><div class="value">${curA.total}</div></div><div class="meta">média/dia: ${curA.avg.toFixed(2)}</div></div></div>
-        <div class="card col-3"><div class="kpi"><div><div class="meta">Top motivo</div><div class="value">${curA.topReason[0]}</div></div><div class="meta">${curA.topReason[1]} ocorr.</div></div></div>
-        <div class="card col-3"><div class="kpi"><div><div class="meta">Top login</div><div class="value">${curA.topLogin[0]}</div></div><div class="meta">${curA.topLogin[1]} ocorr.</div></div></div>
-        <div class="card col-3"><div class="kpi"><div><div class="meta">Dia de pico</div><div class="value">${curA.peakDay[0]}</div></div><div class="meta">${curA.peakDay[1]} ocorr.</div></div></div>
+    let processedPages = 0;
+    let newRows = [];
 
-        <div class="card col-6"><canvas id="r15_by_reason" height="120"></canvas></div>
-        <div class="card col-6"><canvas id="r15_by_day" height="120"></canvas></div>
-        <div class="card col-12"><div class="hint">Período considerado: ${start15.toISOString().slice(0,10)} a ${maxD.toISOString().slice(0,10)}</div></div>
-      `;
-      reportBody.appendChild(el);
-      new Chart(document.getElementById("r15_by_reason").getContext("2d"), {type:"bar", data:{labels:Object.keys(curA.byReason), datasets:[{label:"Ocorrências (15d)", data:Object.values(curA.byReason)}]}});
-      const labels = Object.keys(curA.byDay).sort();
-      new Chart(document.getElementById("r15_by_day").getContext("2d"), {type:"line", data:{labels, datasets:[{label:"Ocorrências por dia", data:labels.map(d=>curA.byDay[d]||0)}]}});
+    for (const file of files) {
+      try {
+        log(`Lendo: ${file.name}`);
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(buffer).promise;
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          
+          // Convert visual items to lines based on Y coordinate
+          const lines = itemsToTextLines(textContent.items);
+          const parsed = parseLines(lines);
+          newRows = newRows.concat(parsed);
+          
+          processedPages++;
+          updateProgress((processedPages / totalPages) * 100);
+          
+          // Yield to UI thread to prevent freeze
+          if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+        }
+        state.files.push(file.name);
+      } catch (err) {
+        log(`ERRO em ${file.name}: ${err.message}`);
+      }
     }
-    else if(active==="r15comp"){
-      const delta = curA.total - prevA.total;
-      const pct = prevA.total ? ((delta/prevA.total)*100).toFixed(1) : "—";
-      const el = document.createElement("div");
-      el.className="report-grid";
-      el.innerHTML = `
-        <div class="card col-4"><div class="kpi"><div><div class="meta">Total atual (15d)</div><div class="value">${curA.total}</div></div><div class="meta">média/dia: ${curA.avg.toFixed(2)}</div></div></div>
-        <div class="card col-4"><div class="kpi"><div><div class="meta">Total anterior (15d)</div><div class="value">${prevA.total}</div></div><div class="meta">média/dia: ${prevA.avg.toFixed(2)}</div></div></div>
-        <div class="card col-4"><div class="kpi"><div><div class="meta">Variação</div><div class="value">${delta>=0?"+":""}${delta}</div></div><div class="meta">${pct==="—"?"—":pct+"%"}</div></div></div>
 
-        <div class="card col-6"><canvas id="r15c_reason" height="120"></canvas></div>
-        <div class="card col-6"><canvas id="r15c_day" height="120"></canvas></div>
-        <div class="card col-12"><div class="hint">Atual: ${start15.toISOString().slice(0,10)} a ${maxD.toISOString().slice(0,10)} • Anterior: ${prevStart.toISOString().slice(0,10)} a ${prevEnd.toISOString().slice(0,10)}</div></div>
-      `;
-      reportBody.appendChild(el);
-      const allReasons = Array.from(new Set([...Object.keys(curA.byReason), ...Object.keys(prevA.byReason)]));
-      new Chart(document.getElementById("r15c_reason").getContext("2d"), {
-        type:"bar",
-        data:{ labels:allReasons, datasets:[
-          {label:"Atual (15d)", data:allReasons.map(r=>curA.byReason[r]||0)},
-          {label:"Anterior (15d)", data:allReasons.map(r=>prevA.byReason[r]||0)}
-        ]}
+    state.rawData = removeDuplicates([...state.rawData, ...newRows]);
+    state.rawData.sort((a,b) => b.date - a.date); // Sort descending
+    
+    // Determine default date range
+    if(state.rawData.length) {
+       const dates = state.rawData.map(r => r.date);
+       state.dateRange.min = new Date(Math.min(...dates));
+       state.dateRange.max = new Date(Math.max(...dates));
+       
+       updateFileRangeDisplay();
+
+       // Default filter: last 15 days if available
+       setQuickDate(15, false);
+    }
+
+    updateProgress(100);
+    setTimeout(() => { els.progressContainer.style.display = 'none'; }, 1000);
+    log(`Processamento concluído. ${newRows.length} novas linhas.`);
+    
+    updateFilters();
+  }
+
+  function itemsToTextLines(items) {
+    const rows = {};
+    items.forEach(item => {
+      const y = Math.round(item.transform[5]); // Y coordinate
+      if (!rows[y]) rows[y] = [];
+      rows[y].push(item.str);
+    });
+    // Sort by Y descending (top to bottom)
+    return Object.keys(rows).sort((a,b) => b-a).map(y => rows[y].join(" "));
+  }
+
+  function parseLines(lines) {
+    const results = [];
+    const reasonsKeywords = [
+      "Lost-Carrier", "User-Request", "Admin-Reset", "Session-Timeout", 
+      "Nas-Error", "Idle-Timeout", "Port-Error", "Service-Unavailable", 
+      "Accounting-Stop", "Admin-Reboot", "Host-Request"
+    ];
+    const reasonRegex = new RegExp(`\\b(${reasonsKeywords.join("|")})\\b`, "i");
+    const dateRegex = /(\d{2}\/\d{2}\/\d{4})\s+(\d{2}:\d{2}:\d{2})/;
+    const ipRegex = /(?:\d{1,3}\.){3}\d{1,3}/;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const reasonMatch = line.match(reasonRegex);
+
+      if (reasonMatch) {
+        const context = [lines[i-2]||"", lines[i-1]||"", line].join(" ");
+        const dateMatch = context.match(dateRegex);
+        if (!dateMatch) continue;
+
+        const dateObj = parseDatePTBR(dateMatch[1], dateMatch[2]);
+        const reason = reasonMatch[1];
+        
+        const ipMatch = context.match(ipRegex);
+        const ip = ipMatch ? ipMatch[0] : "";
+
+        let login = "Desconhecido";
+        const parts = line.split(reason)[0].trim().split(/\s+/);
+        const candidate = parts[parts.length - 1];
+        if (candidate && candidate.length > 3 && !candidate.includes("/")) {
+          login = candidate;
+        }
+
+        results.push({
+          id: dateObj.getTime() + reason + ip,
+          date: dateObj,
+          reason: reason,
+          ip: ip,
+          login: login,
+          rawLine: line
+        });
+      }
+    }
+    return results;
+  }
+
+  function parseDatePTBR(dateStr, timeStr) {
+    const [d, m, y] = dateStr.split('/').map(Number);
+    const [hr, min, sec] = timeStr.split(':').map(Number);
+    return new Date(y, m - 1, d, hr, min, sec);
+  }
+
+  function removeDuplicates(arr) {
+    const seen = new Set();
+    return arr.filter(item => {
+      const key = item.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  // --- Filtering & UI Update ---
+
+  function updateFilters() {
+    let start = els.dateStart.value ? new Date(els.dateStart.value + "T00:00:00") : null;
+    let end = els.dateEnd.value ? new Date(els.dateEnd.value + "T23:59:59") : null;
+    
+    state.filters.start = start;
+    state.filters.end = end;
+    
+    state.filteredData = state.rawData.filter(row => {
+      if (start && row.date < start) return false;
+      if (end && row.date > end) return false;
+      if (state.filters.excludedReasons.has(row.reason)) return false;
+      return true;
+    });
+
+    renderCurrentPage();
+  }
+
+  function updateFileRangeDisplay() {
+    const min = state.dateRange.min;
+    const max = state.dateRange.max;
+    if (min && max) {
+      els.lblFileRange.innerText = `${min.toLocaleDateString('pt-BR')} até ${max.toLocaleDateString('pt-BR')}`;
+    } else {
+      els.lblFileRange.innerText = "—";
+    }
+  }
+
+  function setQuickDate(days, triggerUpdate = true) {
+    document.querySelectorAll('.quick-filters button').forEach(b => b.classList.remove('active'));
+    
+    if (days === null) {
+      els.dateStart.value = '';
+      els.dateEnd.value = '';
+      els.btnResetDate.classList.add('active');
+    } else {
+      const end = new Date();
+      const refDate = state.dateRange.max || new Date();
+      
+      const start = new Date(refDate);
+      start.setDate(refDate.getDate() - (days - 1));
+      
+      els.dateStart.value = start.toISOString().split('T')[0];
+      els.dateEnd.value = refDate.toISOString().split('T')[0];
+      
+      const btn = document.querySelector(`.quick-filters button[data-days="${days}"]`);
+      if(btn) btn.classList.add('active');
+    }
+    if (triggerUpdate) updateFilters();
+  }
+
+  function navigateTo(pageId) {
+    state.ui.activePage = pageId;
+    
+    document.querySelectorAll('.nav-link[data-page]').forEach(l => l.classList.remove('active'));
+    document.querySelector(`.nav-link[data-page="${pageId}"]`).classList.add('active');
+
+    const titles = {
+      dashboard: "Dashboard Geral",
+      tabela: "Tabela Detalhada",
+      ips: "Análise de IPs",
+      relatorios: "Relatórios Inteligentes",
+      log: "Log do Sistema"
+    };
+    els.pageTitle.innerText = titles[pageId];
+
+    const tpl = document.getElementById(`tpl-${pageId}`);
+    els.contentArea.innerHTML = '';
+    els.contentArea.appendChild(tpl.content.cloneNode(true));
+
+    renderCurrentPage();
+  }
+
+  function renderCurrentPage() {
+    const page = state.ui.activePage;
+    if (page === 'dashboard') renderDashboard();
+    else if (page === 'tabela') renderTable();
+    else if (page === 'ips') renderIps();
+    else if (page === 'relatorios') renderReport('overview');
+    else if (page === 'log') { /* Log is static/global */ }
+  }
+
+  // --- Renderers ---
+
+  let charts = {};
+
+  function renderDashboard() {
+    const total = state.filteredData.length;
+    const distinctIps = new Set(state.filteredData.map(r => r.ip)).size;
+    
+    let days = 1;
+    if (state.filteredData.length > 0) {
+      const times = state.filteredData.map(r => r.date.getTime());
+      const min = Math.min(...times);
+      const max = Math.max(...times);
+      days = Math.max(1, Math.ceil((max - min) / (1000 * 60 * 60 * 24)));
+    }
+    const avg = total / days;
+
+    document.getElementById('kpiTotal').innerText = total.toLocaleString();
+    document.getElementById('kpiAvg').innerText = avg.toFixed(1);
+    document.getElementById('kpiUniqueIps').innerText = distinctIps.toLocaleString();
+    document.getElementById('kpiFiles').innerText = state.files.length;
+    document.getElementById('kpiPages').innerText = `${Math.ceil(total/50)} pgs est.`;
+
+    const reasonsCount = {};
+    state.rawData.forEach(r => reasonsCount[r.reason] = (reasonsCount[r.reason]||0) + 1);
+    
+    const container = document.getElementById('reasonsContainer');
+    if (container) {
+      container.innerHTML = '';
+      Object.keys(reasonsCount).sort((a,b) => reasonsCount[b] - reasonsCount[a]).forEach(r => {
+        const isActive = !state.filters.excludedReasons.has(r);
+        const el = document.createElement('div');
+        el.className = `chip ${isActive ? 'active' : ''}`;
+        el.innerText = `${r} (${reasonsCount[r]})`;
+        el.onclick = () => {
+          if (isActive) state.filters.excludedReasons.add(r);
+          else state.filters.excludedReasons.delete(r);
+          updateFilters();
+        };
+        container.appendChild(el);
       });
-      const allDays = Array.from(new Set([...Object.keys(curA.byDay), ...Object.keys(prevA.byDay)])).sort();
-      new Chart(document.getElementById("r15c_day").getContext("2d"), {
-        type:"line",
-        data:{ labels:allDays, datasets:[
-          {label:"Atual", data:allDays.map(d=>curA.byDay[d]||0)},
-          {label:"Anterior", data:allDays.map(d=>prevA.byDay[d]||0)}
-        ]},
-        options:{ interaction:{mode:"index", intersect:false}}
-      });
     }
-    else if(active==="pic"){
-      const rows = state.rows.filter(r=>r.dateFinal).sort((a,b)=>a.dateFinal-b.dateFinal);
-      const maxD = rows[rows.length-1].dateFinal;
-      const rows30 = rows.filter(r => r.dateFinal >= new Date(maxD.getTime()-29*86400000));
-      const byDay = {};
-      rows30.forEach(r => { const k=r.dateFinal.toISOString().slice(0,10); byDay[k]=(byDay[k]||0)+1; });
-      const labels = Object.keys(byDay).sort();
-      const values = labels.map(d=>byDay[d]);
-      const mean = values.reduce((a,b)=>a+b,0)/values.length;
-      const sd = Math.sqrt(values.map(v => (v-mean)*(v-mean)).reduce((a,b)=>a+b,0)/values.length);
-      const anomalies = labels.map((d,i)=>({day:d, value:values[i], z: sd? (values[i]-mean)/sd : 0})).filter(x=>x.z>=2);
-      const el = document.createElement("div");
-      el.className="report-grid";
-      el.innerHTML = `
-        <div class="card col-12"><canvas id="pic_line" height="140"></canvas></div>
-        <div class="card col-12">
-          <b>Picos detectados (z ≥ 2)</b>
-          <div class="hint">Base de 30 dias. Média ${mean.toFixed(2)}, desvio ${sd.toFixed(2)}.</div>
-          <ul>${anomalies.map(a=>`<li><b>${a.day}</b>: ${a.value} ocorr.</li>`).join("") || "<li>Nenhum pico relevante.</li>"}</ul>
+
+    const reasonsMap = {};
+    const datesMap = {};
+    
+    state.filteredData.forEach(r => {
+      reasonsMap[r.reason] = (reasonsMap[r.reason] || 0) + 1;
+      const dKey = r.date.toISOString().split('T')[0];
+      datesMap[dKey] = (datesMap[dKey] || 0) + 1;
+    });
+
+    if(charts.history) charts.history.destroy();
+    if(charts.reason) charts.reason.destroy();
+
+    const sortedDates = Object.keys(datesMap).sort();
+    
+    // Theme colors for charts
+    const gridColor = state.ui.theme === 'dark' ? '#334155' : '#e5e7eb';
+    const textColor = state.ui.theme === 'dark' ? '#94a3b8' : '#6b7280';
+
+    charts.history = new Chart(document.getElementById('chartHistory'), {
+      type: 'line',
+      data: {
+        labels: sortedDates.map(d => d.split('-').reverse().join('/')),
+        datasets: [{
+          label: 'Quedas por Dia',
+          data: sortedDates.map(d => datesMap[d]),
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor } },
+          y: { grid: { color: gridColor }, ticks: { color: textColor } }
+        },
+        plugins: { 
+          legend: {display:false}, 
+          title: {display:true, text: 'Evolução Diária', color: textColor} 
+        } 
+      }
+    });
+
+    const sortedReasons = Object.keys(reasonsMap).sort((a,b) => reasonsMap[b] - reasonsMap[a]);
+    charts.reason = new Chart(document.getElementById('chartReason'), {
+      type: 'doughnut',
+      data: {
+        labels: sortedReasons,
+        datasets: [{
+          data: sortedReasons.map(r => reasonsMap[r]),
+          backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'],
+          borderColor: state.ui.theme === 'dark' ? '#1e293b' : '#ffffff'
+        }]
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { 
+          legend: {position:'bottom', labels: { color: textColor }}, 
+          title: {display:true, text: 'Principais Motivos', color: textColor} 
+        } 
+      }
+    });
+  }
+
+  function renderTable() {
+    const tbody = document.querySelector('#mainTable tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    const viewData = state.filteredData.slice(0, 1000);
+    
+    viewData.forEach(r => {
+      let pillClass = 'status-admin';
+      if(r.reason.toLowerCase().includes('lost')) pillClass = 'status-lost';
+      else if(r.reason.toLowerCase().includes('user')) pillClass = 'status-user';
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.date.toLocaleString('pt-BR')}</td>
+        <td><strong>${r.login}</strong></td>
+        <td><span class="status-pill ${pillClass}">${r.reason}</span></td>
+        <td>${r.ip}</td>
+        <td style="color:var(--text-sec); font-size:12px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.rawLine}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderIps() {
+    const tbody = document.querySelector('#ipTable tbody');
+    if (!tbody) return;
+    
+    const ipStats = {};
+    state.filteredData.forEach(r => {
+      if(!r.ip) return;
+      if(!ipStats[r.ip]) ipStats[r.ip] = { count: 0, first: r.date, last: r.date, reasons: {} };
+      const s = ipStats[r.ip];
+      s.count++;
+      if(r.date < s.first) s.first = r.date;
+      if(r.date > s.last) s.last = r.date;
+      s.reasons[r.reason] = (s.reasons[r.reason]||0) + 1;
+    });
+
+    const sortedIps = Object.entries(ipStats).sort((a,b) => b[1].count - a[1].count).slice(0, 500); // Top 500
+    
+    tbody.innerHTML = '';
+    sortedIps.forEach(([ip, s]) => {
+      const topReason = Object.entries(s.reasons).sort((a,b) => b[1] - a[1])[0][0];
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-family:monospace">${ip}</td>
+        <td>${s.count}</td>
+        <td>${s.first.toLocaleString('pt-BR')}</td>
+        <td>${s.last.toLocaleString('pt-BR')}</td>
+        <td>${topReason}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderReport(type) {
+    const container = document.getElementById('reportContent');
+    if (!container) return;
+    
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    
+    if (type === 'overview') {
+      const topLogin = getTopMetric(state.filteredData, 'login');
+      const topReason = getTopMetric(state.filteredData, 'reason');
+      
+      container.innerHTML = `
+        <div style="padding:10px">
+          <h3>Resumo do Período Filtrado</h3>
+          <p>Análise baseada em <b>${state.filteredData.length}</b> eventos.</p>
+          <ul style="line-height: 1.8;">
+            <li>O motivo mais frequente é <b>${topReason.key}</b> com ${topReason.value} ocorrências (${((topReason.value/state.filteredData.length)*100).toFixed(1)}%).</li>
+            <li>O cliente/login mais afetado foi <b>${topLogin.key}</b> com ${topLogin.value} quedas.</li>
+          </ul>
         </div>
       `;
-      reportBody.appendChild(el);
-      new Chart(document.getElementById("pic_line").getContext("2d"), {
-        type:"line",
-        data:{ labels, datasets:[{label:"Ocorrências por dia (30d)", data:values}] }
+    } else if (type === 'picos') {
+      const daily = {};
+      state.filteredData.forEach(r => {
+        const d = r.date.toISOString().split('T')[0];
+        daily[d] = (daily[d]||0) + 1;
       });
+      const vals = Object.values(daily);
+      const mean = vals.reduce((a,b)=>a+b,0) / vals.length || 0;
+      
+      const suspiciousDays = Object.entries(daily).filter(([d, count]) => count > mean * 1.5);
+      
+      let html = `<div style="padding:10px"><h3>Dias com Anomalias (>50% da média)</h3>`;
+      if(suspiciousDays.length === 0) html += `<p style="color:var(--good)">Nenhuma anomalia detectada. O comportamento está estável.</p>`;
+      else {
+        html += `<ul>`;
+        suspiciousDays.forEach(([d, c]) => {
+          html += `<li><b>${d.split('-').reverse().join('/')}</b>: ${c} quedas (Média: ${mean.toFixed(0)})</li>`;
+        });
+        html += `</ul>`;
+      }
+      html += `</div>`;
+      container.innerHTML = html;
     }
   }
 
-  // --------- Core processing ---------
-  async function readPDF(file){
-    const buf = await file.arrayBuffer();
-    let pdf=null;
-    try {
-      pdf = await pdfjsLib.getDocument({data:buf}).promise;
-    } catch(e){
-      log("Worker falhou: " + e.message + " — usando disableWorker.");
-      pdf = await pdfjsLib.getDocument({data:buf, disableWorker:true}).promise;
-    }
-    return pdf;
+  function getTopMetric(data, key) {
+    const map = {};
+    data.forEach(r => map[r[key]] = (map[r[key]]||0)+1);
+    const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]);
+    return sorted.length ? {key: sorted[0][0], value: sorted[0][1]} : {key:'-', value:0};
   }
 
-  async function processAll(){
-    if(!state.files.length){ alert("Selecione pelo menos um PDF."); return; }
-    state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null; state.hiddenReasons.clear();
-    setQuickActive(null);
-    let totalPages=0; const texts=[];
-    for(const f of state.files){
-      try{
-        const pdf = await readPDF(f);
-        totalPages += pdf.numPages;
-        for(let p=1;p<=pdf.numPages;p++){
-          log(`Lendo ${f.name} — página ${p}/${pdf.numPages}`);
-          const page = await pdf.getPage(p);
-          const content = await page.getTextContent();
-          texts.push(itemsToTextLines(content.items));
-        }
-      }catch(err){ log(`Erro ao ler ${f.name}: ${err.message}`); }
+  function log(msg) {
+    const box = document.getElementById('logBox');
+    if(box) {
+      const time = new Date().toLocaleTimeString();
+      box.innerHTML += `<div>[${time}] ${msg}</div>`;
+      box.scrollTop = box.scrollHeight;
     }
-    state.pages = totalPages;
-    const all = texts.join("\n");
-    if(!all.trim()){
-      log("Nenhum texto encontrado — possivelmente PDF imagem/scan. Considere gerar o relatório detalhado ou usar OCR.");
-    }
-    const extracted = extractRows(all);
-    state.rows = extracted;
-    const dates = extracted.map(r => r.dateFinal).filter(Boolean).sort((a,b)=>a-b);
-    if(dates.length){
-      state.minDate=dates[0]; state.maxDate=dates[dates.length-1];
-      const end = state.maxDate;
-      const start = new Date(end); start.setDate(start.getDate()-14);
-      dateStart.value = toInputlocal(start); dateEnd.value = toInputlocal(end);
-      setQuickActive("15");
-    }
-    kpiFiles.textContent = state.files.length.toString();
-    kpiPages.textContent = `${state.pages} página${state.pages===1?"":"s"}`;
-    updateView();
-    log(`Finalizado. Linhas extraídas: ${state.rows.length}.`);
+    console.log(msg);
   }
 
-  function exportCSV(){
-    const filtered = applyDateFilter(state.rows);
-    const header = ["login","data_final","motivo","ip","linha_raw"];
-    const rows = filtered.map(r => [r.login||"", r.dateFinal.toISOString(), r.reason, r.ip||"", r.line.replaceAll('"','""')]);
-    let csv = header.join(",") + "\\n" + rows.map(r => r.map(v => `"${v}"`).join(",")).join("\\n");
-    const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "ixc_quedas_filtrado.csv"; a.click(); URL.revokeObjectURL(a.href);
+  function updateProgress(percent) {
+    const bar = document.getElementById('progressBar');
+    if(bar) bar.style.width = `${percent}%`;
   }
 
-  function clearAll(){
-    state.files=[]; state.pages=0; state.rows=[]; state.minDate=null; state.maxDate=null; state.hiddenReasons.clear();
-    document.getElementById("fileInput").value="";
-    document.getElementById("logBox").textContent="Pronto.";
-    dateStart.value=""; dateEnd.value=""; setQuickActive(null);
-    kpiFiles.textContent="0"; kpiPages.textContent="0 páginas"; kpiRows.textContent="0";
-    kpiDrops.textContent="0"; kpiAvgDay.innerHTML = `média/dia: <span class="avgVal">0</span>`; kpiRange.textContent="—"; kpiDistinctDays.textContent="0 dias";
-    document.querySelector("#tbl tbody").innerHTML="";
-    document.querySelector("#tblIps tbody").innerHTML="";
-    if(chartByReason) chartByReason.destroy();
-    if(chartPie) chartPie.destroy();
-    if(chartDaily) chartDaily.destroy();
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
   }
 
-  // Tema
-  const btnDark = document.getElementById("btnDarkMode");
-  btnDark.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    if(document.body.classList.contains("dark")){
-      btnDark.textContent = "☀️"; localStorage.setItem("theme","dark");
-    } else {
-      btnDark.textContent = "🌙"; localStorage.setItem("theme","light");
-    }
-  });
-  if(localStorage.getItem("theme")==="dark"){ document.body.classList.add("dark"); btnDark.textContent = "☀️"; }
+  function clearAll() {
+    state.files = [];
+    state.rawData = [];
+    state.filteredData = [];
+    state.dateRange = { min: null, max: null };
+    els.fileInput.value = '';
+    
+    // Fix: Check if element exists before accessing innerHTML
+    const container = document.getElementById('reasonsContainer');
+    if (container) container.innerHTML = '';
+    
+    updateFileRangeDisplay();
+    updateFilters();
+    log("Dados limpos.");
+  }
 
-  elProcess.addEventListener("click", processAll);
-  elCSV.addEventListener("click", exportCSV);
-  document.addEventListener("keydown",(e)=>{ if(e.key==="Enter") processAll(); });
+  function exportCSV() {
+    if(!state.filteredData.length) return alert("Sem dados para exportar.");
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Data/Hora,Login,Motivo,IP,Linha Original\n";
+    
+    state.filteredData.forEach(r => {
+      const row = [
+        r.date.toLocaleString('pt-BR'),
+        r.login,
+        r.reason,
+        r.ip,
+        `"${r.rawLine.replace(/"/g, '""')}"`
+      ];
+      csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "ixc_relatorio_quedas.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  return { init, renderReport };
 })();
+
+// Start
+document.addEventListener('DOMContentLoaded', app.init);
 </script>
 </body>
 </html>
